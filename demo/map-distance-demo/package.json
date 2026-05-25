@@ -4,7 +4,13 @@
   "private": true,
   "scripts": {
     "start": "webpack serve --config webpack.config.js --open",
-    "build": "webpack --config webpack.config.js"
+    "start:e2e": "webpack serve --config webpack.config.js --host 127.0.0.1 --port 3001 --no-open",
+    "build": "webpack --config webpack.config.js",
+    "test:e2e": "playwright test",
+      "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@ant-design/icons": "5.5.1",
@@ -27,6 +33,7 @@
     "css-loader": "^6.7.1",
     "html-webpack-plugin": "5.6.0",
     "mini-css-extract-plugin": "^2.6.1",
+    "@playwright/test": "^1.54.2",
     "sass": "^1.77.4",
     "sass-loader": "^14.2.1",
     "style-loader": "^3.3.1",

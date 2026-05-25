@@ -69,6 +69,12 @@ module.exports = {
     port: 3001,
     hot: true,
     open: true,
+    client: {
+      overlay: {
+        errors: true,
+        warnings: false,
+      },
+    },
     historyApiFallback: true,
   },
   devtool: isDev ? 'cheap-module-source-map' : false,
