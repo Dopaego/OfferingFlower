@@ -1,0 +1,54 @@
+.card {
+  width: 100%;
+  height: 100%;
+
+  :global(.ant-card-body) {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+.statusBar {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+  flex-wrap: wrap;
+  gap: 6px 0;
+}
+
+.mapContainer {
+  width: 100%;
+  height: 520px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #f0f0f0;
+  cursor: crosshair;
+
+  /* 兜底：BMapGL 内部容器在某些版本会强制 grab/grabbing，这里统一覆盖为十字线 */
+  :global(.BMap_mask),
+  :global(.BMap_cpyCtrl),
+  :global(canvas),
+  :global(.anchorBL) {
+    cursor: inherit !important;
+  }
+
+  /* 百度地图 logo / 版权信息默认显示在右下角，无需额外覆盖 */
+}
+
+.hint {
+  padding: 2px 0;
+  border-top: 1px solid #f5f5f5;
+}
+
+.colorDot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
