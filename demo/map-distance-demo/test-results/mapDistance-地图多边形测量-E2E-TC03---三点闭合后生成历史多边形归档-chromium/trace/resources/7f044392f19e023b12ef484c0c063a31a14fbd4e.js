@@ -1,0 +1,1 @@
+/**/BMapGL._rd._cbk42094 && BMapGL._rd._cbk42094({"status":0,"messag":"ok","data":[]})

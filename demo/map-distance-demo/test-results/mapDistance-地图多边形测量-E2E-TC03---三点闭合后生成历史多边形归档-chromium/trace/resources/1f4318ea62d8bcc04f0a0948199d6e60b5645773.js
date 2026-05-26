@@ -1,0 +1,1 @@
+importScripts("http://api.map.baidu.com/res/webgl/10/worker_wasm_bkjynj.js");

@@ -1,0 +1,81 @@
+{"version":8,"type":"context-options","origin":"testRunner","browserName":"","playwrightVersion":"1.60.0","options":{},"platform":"darwin","wallTime":1779712384486,"monotonicTime":12909.717,"sdkLanguage":"javascript","testTimeout":30000}
+{"type":"before","callId":"hook@1","stepId":"hook@1","startTime":12922.993,"class":"Test","method":"hook","title":"Before Hooks","params":{},"stack":[]}
+{"type":"before","callId":"hook@2","stepId":"hook@2","parentId":"hook@1","startTime":12923.675,"class":"Test","method":"hook","title":"beforeEach hook","params":{},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":39,"column":8}]}
+{"type":"before","callId":"fixture@28","stepId":"fixture@28","parentId":"hook@2","startTime":12930.479,"class":"Test","method":"fixture","title":"Fixture \"browser\"","params":{},"stack":[]}
+{"type":"before","callId":"pw:api@29","stepId":"pw:api@29","parentId":"fixture@28","startTime":12931.967,"class":"Test","method":"pw:api","title":"Launch browser","params":{"handleSIGINT":"false","tracesDir":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/test-results/.playwright-artifacts-0/traces","artifactsDir":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/test-results/.playwright-artifacts-0","headless":"true","ignoreDefaultArgs":"undefined","ignoreAllDefaultArgs":"false","env":"undefined","timeout":"180000"},"stack":[]}
+{"type":"after","callId":"pw:api@29","endTime":13148.514,"annotations":[]}
+{"type":"after","callId":"fixture@28","endTime":13148.629,"annotations":[]}
+{"type":"before","callId":"fixture@32","stepId":"fixture@32","parentId":"hook@2","startTime":13149.494,"class":"Test","method":"fixture","title":"Fixture \"context\"","params":{},"stack":[]}
+{"type":"before","callId":"pw:api@33","stepId":"pw:api@33","parentId":"fixture@32","startTime":13150.352,"class":"Test","method":"pw:api","title":"Create context","params":{"recordVideo":"Object","selectorEngines":"[]","testIdAttributeName":"data-testid","acceptDownloads":"accept","bypassCSP":"false","colorScheme":"light","deviceScaleFactor":"1","hasTouch":"false","ignoreHTTPSErrors":"false","isMobile":"false","javaScriptEnabled":"true","locale":"en-US","offline":"false","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.96 Safari/537.36","viewport":"Object","baseURL":"http://127.0.0.1:3001","serviceWorkers":"allow","noDefaultViewport":"false","extraHTTPHeaders":"undefined","storageState":"undefined","reducedMotion":"undefined","forcedColors":"undefined","contrast":"undefined","clientCertificates":"undefined"},"stack":[]}
+{"type":"after","callId":"pw:api@33","endTime":13154.498,"annotations":[]}
+{"type":"after","callId":"fixture@32","endTime":13156.155,"annotations":[]}
+{"type":"before","callId":"fixture@34","stepId":"fixture@34","parentId":"hook@2","startTime":13156.33,"class":"Test","method":"fixture","title":"Fixture \"page\"","params":{},"stack":[]}
+{"type":"before","callId":"pw:api@35","stepId":"pw:api@35","parentId":"fixture@34","startTime":13156.763,"class":"Test","method":"pw:api","title":"Create page","params":{},"stack":[]}
+{"type":"after","callId":"pw:api@35","endTime":13522.159,"annotations":[]}
+{"type":"after","callId":"fixture@34","endTime":13522.229,"annotations":[]}
+{"type":"before","callId":"pw:api@36","stepId":"pw:api@36","parentId":"hook@2","startTime":13523.461,"class":"Test","method":"pw:api","title":"Navigate to \"/\"","params":{"url":"/","waitUntil":"load","timeout":"0"},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":4,"column":14,"function":"waitForMapReady"}]}
+{"type":"after","callId":"pw:api@36","endTime":15353.832,"annotations":[]}
+{"type":"before","callId":"expect@37","stepId":"expect@37","parentId":"hook@2","startTime":15357.492,"class":"Test","method":"expect","title":"Expect \"toBeVisible\"","params":{},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":5,"column":55,"function":"waitForMapReady"}]}
+{"type":"after","callId":"expect@37","endTime":15496.993,"annotations":[]}
+{"type":"before","callId":"pw:api@38","stepId":"pw:api@38","parentId":"hook@2","startTime":15497.662,"class":"Test","method":"pw:api","title":"Wait for function","params":{"pollingInterval":"undefined","expression":"() => {\n    return Boolean(document.querySelector('[data-testid=\"bmap-map\"] canvas'));\n  }","isFunction":"true","arg":"Object","timeout":"0"},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":6,"column":14,"function":"waitForMapReady"}]}
+{"type":"after","callId":"pw:api@38","endTime":15594.226,"annotations":[]}
+{"type":"after","callId":"hook@2","endTime":15594.388,"annotations":[]}
+{"type":"after","callId":"hook@1","endTime":15594.658,"annotations":[]}
+{"type":"before","callId":"pw:api@39","stepId":"pw:api@39","startTime":15595.534,"class":"Test","method":"pw:api","title":"Bounding box getByTestId('bmap-map')","params":{"selector":"internal:testid=[data-testid=\"bmap-map\"s]","strict":"true","state":"attached","timeout":"0"},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":13,"column":25,"function":"getMapPoint"}]}
+{"type":"after","callId":"pw:api@39","endTime":15685.775,"annotations":[]}
+{"type":"before","callId":"pw:api@40","stepId":"pw:api@40","startTime":15686.507,"class":"Test","method":"pw:api","title":"Click","params":{"x":"640","y":"454","button":"left"},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":24,"column":20,"function":"clickMap"}]}
+{"type":"after","callId":"pw:api@40","endTime":15791.357,"annotations":[]}
+{"type":"before","callId":"pw:api@41","stepId":"pw:api@41","startTime":15792.007,"class":"Test","method":"pw:api","title":"Bounding box getByTestId('bmap-map')","params":{"selector":"internal:testid=[data-testid=\"bmap-map\"s]","strict":"true","state":"attached","timeout":"0"},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":13,"column":25,"function":"getMapPoint"}]}
+{"type":"after","callId":"pw:api@41","endTime":15968.432,"annotations":[]}
+{"type":"before","callId":"pw:api@42","stepId":"pw:api@42","startTime":15968.934,"class":"Test","method":"pw:api","title":"Click","params":{"x":"760","y":"455","button":"left"},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":24,"column":20,"function":"clickMap"}]}
+{"type":"after","callId":"pw:api@42","endTime":15993.48,"annotations":[]}
+{"type":"before","callId":"pw:api@43","stepId":"pw:api@43","startTime":15994.255,"class":"Test","method":"pw:api","title":"Bounding box getByTestId('bmap-map')","params":{"selector":"internal:testid=[data-testid=\"bmap-map\"s]","strict":"true","state":"attached","timeout":"0"},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":13,"column":25,"function":"getMapPoint"}]}
+{"type":"after","callId":"pw:api@43","endTime":16889.643,"annotations":[]}
+{"type":"before","callId":"pw:api@44","stepId":"pw:api@44","startTime":16890.273,"class":"Test","method":"pw:api","title":"Click","params":{"x":"740","y":"565","button":"left"},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":24,"column":20,"function":"clickMap"}]}
+{"type":"after","callId":"pw:api@44","endTime":17001.073,"annotations":[]}
+{"type":"before","callId":"pw:api@45","stepId":"pw:api@45","startTime":17001.886,"class":"Test","method":"pw:api","title":"Bounding box getByTestId('bmap-map')","params":{"selector":"internal:testid=[data-testid=\"bmap-map\"s]","strict":"true","state":"attached","timeout":"0"},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":13,"column":25,"function":"getMapPoint"}]}
+{"type":"after","callId":"pw:api@45","endTime":18272.316,"annotations":[]}
+{"type":"before","callId":"pw:api@46","stepId":"pw:api@46","startTime":18273.172,"class":"Test","method":"pw:api","title":"Bounding box getByTestId('bmap-map')","params":{"selector":"internal:testid=[data-testid=\"bmap-map\"s]","strict":"true","state":"attached","timeout":"0"},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":13,"column":25,"function":"getMapPoint"}]}
+{"type":"after","callId":"pw:api@46","endTime":19863.473,"annotations":[]}
+{"type":"before","callId":"pw:api@47","stepId":"pw:api@47","startTime":19864.105,"class":"Test","method":"pw:api","title":"Mouse move","params":{"x":"740","y":"565"},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":28,"column":20,"function":"moveOnMap"}]}
+{"type":"after","callId":"pw:api@47","endTime":20302.61,"annotations":[]}
+{"type":"before","callId":"pw:api@48","stepId":"pw:api@48","startTime":20303.365,"class":"Test","method":"pw:api","title":"Mouse move","params":{"x":"640","y":"455","steps":"8"},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":29,"column":20,"function":"moveOnMap"}]}
+{"type":"after","callId":"pw:api@48","endTime":22246.721,"annotations":[]}
+{"type":"before","callId":"expect@49","stepId":"expect@49","startTime":22247.373,"class":"Test","method":"expect","title":"Expect \"toContainText\"","params":{"expected":"靠近首点"},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":74,"column":50}]}
+{"type":"after","callId":"expect@49","endTime":22456.103,"annotations":[]}
+{"type":"before","callId":"pw:api@50","stepId":"pw:api@50","startTime":22458,"class":"Test","method":"pw:api","title":"Bounding box getByTestId('bmap-map')","params":{"selector":"internal:testid=[data-testid=\"bmap-map\"s]","strict":"true","state":"attached","timeout":"0"},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":13,"column":25,"function":"getMapPoint"}]}
+{"type":"after","callId":"pw:api@50","endTime":22475.831,"annotations":[]}
+{"type":"before","callId":"pw:api@51","stepId":"pw:api@51","startTime":22477.475,"class":"Test","method":"pw:api","title":"Click","params":{"x":"640","y":"455","button":"left"},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":24,"column":20,"function":"clickMap"}]}
+{"type":"after","callId":"pw:api@51","endTime":22883.698,"annotations":[]}
+{"type":"before","callId":"expect@52","stepId":"expect@52","startTime":22884.335,"class":"Test","method":"expect","title":"Expect \"toBeVisible\"","params":{},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":77,"column":52}]}
+{"type":"after","callId":"expect@52","endTime":23450.693,"annotations":[]}
+{"type":"before","callId":"expect@53","stepId":"expect@53","startTime":23451.237,"class":"Test","method":"expect","title":"Expect \"toContainText\"","params":{"expected":"#1"},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":78,"column":51}]}
+{"type":"after","callId":"expect@53","endTime":23454.391,"annotations":[]}
+{"type":"before","callId":"expect@54","stepId":"expect@54","startTime":23454.754,"class":"Test","method":"expect","title":"Expect \"toContainText\"","params":{"expected":"周长"},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":79,"column":51}]}
+{"type":"after","callId":"expect@54","endTime":23457.152,"annotations":[]}
+{"type":"before","callId":"expect@55","stepId":"expect@55","startTime":23457.645,"class":"Test","method":"expect","title":"Expect \"toBeDisabled\"","params":{},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":80,"column":58}]}
+{"type":"after","callId":"expect@55","endTime":23460.678,"annotations":[]}
+{"type":"before","callId":"expect@56","stepId":"expect@56","startTime":23461.062,"class":"Test","method":"expect","title":"Expect \"toBeEnabled\"","params":{},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":81,"column":53}]}
+{"type":"after","callId":"expect@56","endTime":23464.093,"annotations":[]}
+{"type":"before","callId":"expect@57","stepId":"expect@57","startTime":23464.515,"class":"Test","method":"expect","title":"Expect \"toBeHidden\"","params":{},"stack":[{"file":"/Users/gongfanghui.1/OfferingFlower/demo/map-distance-demo/e2e/mapDistance.spec.ts","line":82,"column":49}]}
+{"type":"after","callId":"expect@57","endTime":23467.34,"annotations":[]}
+{"type":"before","callId":"hook@58","stepId":"hook@58","startTime":23467.699,"class":"Test","method":"hook","title":"After Hooks","params":{},"stack":[]}
+{"type":"before","callId":"fixture@59","stepId":"fixture@59","parentId":"hook@58","startTime":23469.624,"class":"Test","method":"fixture","title":"Fixture \"page\"","params":{},"stack":[]}
+{"type":"after","callId":"fixture@59","endTime":23469.972,"annotations":[]}
+{"type":"before","callId":"fixture@60","stepId":"fixture@60","parentId":"hook@58","startTime":23470.409,"class":"Test","method":"fixture","title":"Fixture \"context\"","params":{},"stack":[]}
+{"type":"before","callId":"pw:api@61","stepId":"pw:api@61","parentId":"fixture@60","startTime":24015.557,"class":"Test","method":"pw:api","title":"Close context","params":{"reason":"Test ended."},"stack":[]}
+{"type":"after","callId":"pw:api@61","endTime":24080.921,"annotations":[]}
+{"type":"after","callId":"fixture@60","endTime":24081.158,"annotations":[]}
+{"type":"before","callId":"fixture@70","stepId":"fixture@70","parentId":"hook@58","startTime":24082.486,"class":"Test","method":"fixture","title":"Fixture \"baseURL\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@70","endTime":24082.506,"annotations":[]}
+{"type":"before","callId":"fixture@71","stepId":"fixture@71","parentId":"hook@58","startTime":24082.578,"class":"Test","method":"fixture","title":"Fixture \"userAgent\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@71","endTime":24082.59,"annotations":[]}
+{"type":"before","callId":"fixture@73","stepId":"fixture@73","parentId":"hook@58","startTime":24082.739,"class":"Test","method":"fixture","title":"Fixture \"viewport\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@73","endTime":24082.749,"annotations":[]}
+{"type":"before","callId":"fixture@80","stepId":"fixture@80","parentId":"hook@58","startTime":24083.363,"class":"Test","method":"fixture","title":"Fixture \"isMobile\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@80","endTime":24083.373,"annotations":[]}
+{"type":"before","callId":"fixture@84","stepId":"fixture@84","parentId":"hook@58","startTime":24083.66,"class":"Test","method":"fixture","title":"Fixture \"hasTouch\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@84","endTime":24083.669,"annotations":[]}
+{"type":"before","callId":"fixture@86","stepId":"fixture@86","parentId":"hook@58","startTime":24083.82,"class":"Test","method":"fixture","title":"Fixture \"deviceScaleFactor\"","params":{},"stack":[{"file":"project#chromium","line":1,"column":1}],"group":"configuration"}
+{"type":"after","callId":"fixture@86","endTime":24083.829,"annotations":[]}
+{"type":"after","callId":"hook@58","endTime":24084.246,"annotations":[]}
