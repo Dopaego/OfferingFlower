@@ -881,11 +881,22 @@ Fiber.memoizedState 是Hook链表的入口，每个 Hook 节点通过 next 指�
 - **Reducer**：一个**纯函数**，签名 `(state, action) => newState`，根据 action.type 决定如何更新状态。
 - **Store**：全局唯一的数据仓库，提供 `getState()`、`dispatch(action)`、`subscribe(listener)` 方法。
 
+redux出现的意义：由于react的单向数据流，想管理数据状态非常复杂的应用比如说跨层级，通过props和state来管理是非常复杂且实现起来也会冗杂很多，因此出现了redux可以将所有的state集中到组件顶部，灵活地将所有的state分发给需要它的组件。
+
+底层实现的原理：**把store直接集成到React应用的顶层props里面，只要各个子组件能访问到顶层props就行了**
+<Provider> <APP> </Provider>
+
 ##### 5.2 React组件间通信方式
 1. 父 -> 子：通过props
 2. 子 -> 父： 父组件通过props传递回调函数
 3. 兄弟组件： 状态提升到共同父组件，或者使用Context/Redux
 4. 深层嵌套：Context API 或者状态管理库(Redux)
+
+##### 5.3 redux-saga:
+
+1. 使用 createSagaMiddleware 方法创建 saga 的 Middleware ，然后在创建的 redux 的 store 时，使用 applyMiddleware 函数将创建的 saga Middleware 实例绑定到 store 上，最后可以调用 saga Middleware 的 run 函数来执行某个或者某些 Middleware 。
+
+2. 在 saga 的 Middleware 中，可以使用 takeEvery 或者 takeLatest 等 API 来监听某个 action ，当某个 action 触发后， saga 可以使用 call 发起**异步操作**，操作完成后使用 put 函数触发 action ，同步更新 state ，从而完成整个 State 的更新。
 
 #### 6. 组件与生命周期
 
