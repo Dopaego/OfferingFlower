@@ -172,6 +172,8 @@ MQTT 属于外部事件源，它的消息到达是异步且持续的，不适合
 组件挂载后，创建RTC播放器实例，并且调用play(videoUrl)发起播放；
 当远端视频轨道到达时，会在ontrack回调里把MediaStream挂到video元素上完成渲染。
 
+- MidiaStream: 流媒体对象，音视频数据的一种封装格式，挂载到video或者audio标签上播放
+
 #### 播放
 
 组件挂载后，创建RTC播放器实例，并且调用play(videoUrl)发起播放；
@@ -188,12 +190,76 @@ MQTT 属于外部事件源，它的消息到达是异步且持续的，不适合
 - 码率 bitRate： 前后两次bytesReceived差值 和 时间差的计算
 - 帧率 frameRate：来自report.framesPerSecond字段
 - 延迟时间 delay： 后面通过视频帧回调估算
+- RTCPeerConnection：会话控制，网络和媒体信息收发，类似于http对象
 
 #### 弱网重连
 
 在质量监控部分，如果检测出来 码率为0，就认为媒体流存在异常，如果连续超过五次异常，才执行关闭重连
 如果仅一次码率为0就关闭，可能只是网络抖动。
 
+#### 调用play（）失败时也有重试
+
+除了播放过程中的断流【码率为0时】的断流重试，代码还处理了启动失败。
+当play失败时，要关闭当前播放器再重新打开。
+
+#### 延迟的计算
+
+- video.requestVideoFrameCallback(...)
+- frame.rtpTimestamp
+- 自己封装了formatTimestamp
+
+计算过程：浏览器渲染某帧视频，拿到这帧的时间戳，再结合本地当前时间，估算当前帧的延迟。
+
 #### webRTC的质量数据通过MQTT回传的意义
 
 采集到的质量指标会按批次通过MQTT回传给监控侧，用于链路质量的监控
+
+#### 清理逻辑防止内存泄漏
+
+- _RTCRef.current.close()
+- clearInterval(delayIntervalRef.current)
+- clearInterval(reconnectIntervalRef.current)
+- videoRef.current = null
+避免页面离开后RTC连接还占资源
+定时器泄漏
+旧实例和新实例互相影响。
+在组件卸载时显式关闭 RTC 实例并清理所有采样和重连定时器，避免资源泄漏和重复拉流。
+
+#### 比较常用的API?
+
+- ontrack：远端媒体轨道到达时触发，播放端收到远端视频轨道后，在ontrack里拿到stream，再挂到video.srcObject
+- video.srcObject：把媒体流MediaStream绑定到<video>,是视频显示到页面上的关键一步
+- video.play： 显式触发播放，当浏览器自动播放策略下的兜底处理，如果视频挂上去了但没有真正的开始播放后再调用
+- getStats：用RTC传输统计信息，每秒轮询一次stats，重点看inbount-rtp的bytesReceived和framesPerSecond等字段，用于计算码率和监控帧率。
+- requestVideoFrameCallback： 在视频帧真正渲染时的回调，结合frame.rtpTimestamp和本地时间做延迟近似估算，用于页面的展示和质量监控
+- close： 关闭RTC的播放实例，在组件卸载或者重连前调用，主动关闭旧实例清理定时器，避免资源泄漏和重复拉流。
+
+#### 被追问到底层
+
+这块我知道它的大致原理，比如 WebRTC 建连通常会涉及 SDP 协商和 ICE 过程，但在这个项目里我主要负责的是前端播放端接入、质量监控和异常恢复，没有直接实现信令交换和 STUN/TURN 服务。
+
+### WebRTC + MQTT配合使用
+
+- webRTC负责实时的视频播放
+- mqtt负责把质量数据回传给监控侧
+
+#### 步骤
+
+1. 拉起WebRTC进行视频播放
+2. 采集视频质量指标，比如调用getStats方法计算码率，framePerSecond获取帧率，还有通过时间戳计算延迟等指标
+3. 将指标聚合后通过MQTT上传
+4. 再根据质量结果做断流判断和重连
+
+核心思想： 不能只是播视频，而是升级成 **可观测、可恢复、可上报的实时视频链路**
+
+各自的职责：
+
+- webRTC：负责实时视频流传输，将远端媒体流送到浏览器，提供底层相应抓取码率的能力
+- mqtt：负责轻量级实时消息回传，把前端采集到的视频质量指标发给监控系统、并且和整体监控消息链路保持统一。
+
+#### 业务理解
+
+1. 为什么不直接展示质量数据，而是还要上报：
+
+页面展示数据和质量只是满足了从使用方对于系统的监控，并没有持久化存储。我们想实现的是，针对不同车辆、不同视频流的质量监控。这种实时监控的数据不仅是为了展示给用户，更是方便出了问题可以针对性地排查。
+

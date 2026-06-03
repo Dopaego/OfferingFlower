@@ -1,19 +1,19 @@
-## 全栈相关
+# 全栈相关
 
-### 1. Node.js 
+## 1. Node.js
 
-#### 1.1 Node中的事件循环机制
+### 1.1 Node中的事件循环机制
 
 Node.js中的事件循环基于**libuv库**实现，让Node在单线程下也能执行非阻塞的I/O操作。【如果Nodejs亲自执行I/O操作，那么由于js的单线程特性，会导致代码执行的阻塞，因此node可以把此类阻塞操作，委派给libuv库，从而实现了非阻塞的I/O操作】
 
-##### 事件循环的6个阶段
+#### 事件循环的6个阶段
 
 1. **Timers（定时器阶段）** ：执行 `setTimeout`、`setInterval` 的回调。
 2. **Pending callbacks（挂起回调阶段）** ：执行延迟到下一轮迭代的 I/O 回调（比如某些系统操作错误）。
 3. **Idle / Prepare（空闲/准备阶段）** ：仅内部使用，开发者不感知。
-4.  **Poll（轮询阶段）** ：**核心阶段**，获取新的 I/O 事件，执行 I/O 相关回调。
-- 如果 poll 阶段队列为空且有 `setImmediate` 回调，会跳转到 check 阶段，如果没有`setImmediate` 回调，则会在此等待新的回调加入队列，直到超时。
-- 如果poll 队列不为空，会同步执行队列中的回调，直到队列为空或达到系统限制。
+4. **Poll（轮询阶段）** ：**核心阶段**，获取新的 I/O 事件，执行 I/O 相关回调。
+    - 如果 poll 阶段队列为空且有 `setImmediate` 回调，会跳转到 check 阶段，如果没有`setImmediate` 回调，则会在此等待新的回调加入队列，直到超时。
+    - 如果poll 队列不为空，会同步执行队列中的回调，直到队列为空或达到系统限制。
 5. **Check（检查阶段）** ：执行 `setImmediate()` 的回调。
 6. **Close callbacks（关闭回调阶段）** ：执行 `socket.on('close')` 等清理操作。
 
@@ -21,25 +21,21 @@ Node.js中的事件循环基于**libuv库**实现，让Node在单线程下也能
 
 **setTimeout** 最快也要 1ms 后才进入 timers 队列，而 **setImmediate** 在本次事件循环的 check 阶段就会执行。
 
-##### 浏览器的事件循环和Node.js的事件循环的区别
+#### 浏览器的事件循环和Node.js的事件循环的区别
 
-**① 架构层面不同**
+1. 架构层面不同：
+    浏览器事件循环由 **HTML5 标准** 定义，包含渲染管线；Node.js 事件循环由 **libuv** 实现，不涉及 UI 渲染。
 
-浏览器事件循环由 **HTML5 标准** 定义，包含渲染管线；Node.js 事件循环由 **libuv** 实现，不涉及 UI 渲染。
+2. 宏任务来源不同：
+    - **浏览器宏任务**：`setTimeout`、`setInterval`、`MessageChannel`、`I/O`、UI 渲染。
+    - **Node.js 宏任务**：`setTimeout`、`setInterval`、`setImmediate`（Node 专有）、`I/O` 操作。
 
-**② 宏任务来源不同**
+3. 微任务执行时机不同
+    - **浏览器**：**一个宏任务执行完后，立刻清空整个微任务队列**，然后进行 UI 渲染。
+    - **Node.js**：微任务在**每个阶段切换之间执行**，而不是等整个事件循环完成一轮。
 
-- **浏览器宏任务**：`setTimeout`、`setInterval`、`MessageChannel`、`I/O`、UI 渲染。
-- **Node.js 宏任务**：`setTimeout`、`setInterval`、`setImmediate`（Node 专有）、`I/O` 操作。
-
-**③ 微任务执行时机不同**
-
-- **浏览器**：**一个宏任务执行完后，立刻清空整个微任务队列**，然后进行 UI 渲染。
-- **Node.js**：微任务在**每个阶段切换之间执行**，而不是等整个事件循环完成一轮。
-
-**④ process.nextTick 是 Node 独有的**
-
-它在微任务队列中优先级最高，**比 Promise.then 还先执行**。
+4. process.nextTick 是 Node 独有的
+    它在微任务队列中优先级最高，**比 Promise.then 还先执行**。
 
 **一句话总结**：浏览器的事件循环服务于“渲染页面”，Node.js 的事件循环服务于“处理 I/O”。
 
@@ -49,23 +45,24 @@ Node.js中的事件循环基于**libuv库**实现，让Node在单线程下也能
 
 `process.nextTick` > `Promise.then` > `setTimeout` ≈ `setImmediate`（谁先谁后取决于调用环境）。
 
-**执行顺序解析**：
+**关于 setTimeout(fn, 0) vs setImmediate：**
+    - 如果两者都在**主模块**中调用，执行顺序**不确定**，取决于 Node 的启动时间和系统性能。
+    - 如果两者都在**同一个 I/O 回调**中调用，`setImmediate` **总是先执行**，因为 I/O 回调完成后事件循环进入 poll 阶段，紧接着就是 check 阶段。
+
+##### 执行顺序解析
+
 1. 同步代码全部执行完毕。
 2. 进入微任务阶段：`process.nextTick` 最先执行，然后是 `Promise.then`。
 3. 进入宏任务阶段：按事件循环的六个阶段顺序执行。
 
-**关于 setTimeout(fn, 0) vs setImmediate：**
-- 如果两者都在**主模块**中调用，执行顺序**不确定**，取决于 Node 的启动时间和系统性能。
-- 如果两者都在**同一个 I/O 回调**中调用，`setImmediate` **总是先执行**，因为 I/O 回调完成后事件循环进入 poll 阶段，紧接着就是 check 阶段。
-
 process.nextTick 的递归调用会**饿死事件循环**”——因为这会让 nextTick 队列永远清不完，timers 和 I/O 阶段永远得不到执行
 
+## 2.Next.js
 
-
-### 2.Next.js 
 React 量身打造的“全栈框架”。如果说 React 负责构建用户界面，那 Next.js 就是给这个界面加上了服务端能力（如 SSR）、文件路由和众多开箱即用的性能优化
 
-#### 2.1 SSR、SSG、ISR、CSR的区别、使用场景
+### 2.1 SSR、SSG、ISR、CSR的区别、使用场景
+
 - CSR: 客户端渲染 HTML生成是在浏览器运行[浏览器下载空的HTML和JS，JS解析出来页面内容渲染到HTML中]时，SEO差，因为爬虫获取到的数据由于HTML未完整生产所以SEO不准确，首屏加载速度慢，因为需要在浏览器构建HTML，数据实时性高，因为每次数据更新会重新构建HTML。对服务器无格外压力。 这些特点决定了CSR适用于： 后台管理系统、内部工具——不需要 SEO，纯交互应用
 - SSR：服务端渲染 HTML生成是在服务端渲染，每次请求时会构建好新的HTML，因此SEO比较好，首屏加载速度也快，数据实时性高，但对服务器压力较大。
 - SSG（Static Site Generation）： 静态生成，在项目构建时就一次性生成好所有静态 HTML 页面。所有用户请求直接返回这份静态文件，速度极快。适合内容固定不变的页面。
@@ -88,6 +85,7 @@ Server Component：代码运行在服务端的组件，
 Hydration 是**客户端将服务端渲染出的静态 HTML 与 React 组件的事件处理程序绑定的过程**。
 
 **工作流程**：
+
 1. 服务端生成完整 HTML 返回浏览器。
 2. 用户立刻看到页面内容（但此时按钮点击不了）。
 3. 浏览器下载并执行 JS 文件。
@@ -99,6 +97,7 @@ Hydration 是**客户端将服务端渲染出的静态 HTML 与 React 组件的�
 **加分回答点**：“面试官可能会追问水合不匹配（Hydration Mismatch）——当服务端生成的 HTML 和客户端渲染的结果不一致时，React 会报错。常见原因：用了 `typeof window` 做条件判断、渲染了 `Date.now()`、或者用了浏览器专有 API。”
 
 ### 3.BFF（Backend For FrontEnd）
+
 为每种客户端（Web、iOS、Android 等）专门构建一个中间服务层，而不是让前端直接调用通用的微服务 API。
 API Routes 和 Server Components 天然都是 BFF 层。
 为什么需要 BFF？先看没有 BFF 的痛点
@@ -199,8 +198,10 @@ SSE 一般指Server-Sent Events 服务器推送事件，是基于HTTP连接的�
 常见的设置30s，不能超过网关的超时时间。
 
 ### 5. 中间件机制
+
 中间件的本质是 一组按顺序执行的函数，它可以在请求到达服务端前和客户端接收到最终响应前执行一些操作，使之可以进行一些通用的操作，比如说修改响应，修改请求，处理错误，日志记录等操作。每个中间件都有机会查看或修改传入的请求对象以及传出的响应对象。
 中间件的创建方式主要有两种：
+
 - 在 main.ts 中使用 app.use 创建一个函数中间件，作用全局，但不支持依赖注入；
 - 使用命令创建中间件类，在模块中调用，可以设置应用范围，更灵活，且支持依赖注入。
 
