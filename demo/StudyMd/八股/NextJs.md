@@ -94,7 +94,7 @@ Next.js中的流式渲染其实是对SSR的优化，SSR往往是将一整个完�
     60 秒后的第一个请求 → 立即返回旧缓存（stale），并在后台触发重新请求，更新缓存供下次使用。
     这是 stale-while-revalidate 策略在数据层的实现。
 
-#### 2.8 Next.js作为全栈框架意义在哪里：
+#### 2.8 Next.js作为全栈框架意义在哪里
 
 可以作为BFF，轻量级聚合后端各个微服务的数据聚合为一个前端友好的接口，统一处理Cookie.Token的认证逻辑。
 前端请求的都是Next.js自己的API路由，不需要关心后端地址、鉴权细节等。
@@ -123,7 +123,7 @@ Node Runtime是传统的Node服务器，提供完整能力，适合复杂业务�
 RSC会将ServerComponent解析为Flight协议定义的JSON-like数据格式，描述了组件树的结构、props以及ClientComponent的引用位置，Flight流被发送到浏览器后，React客户端会解析该数据流，重建组件树。最后ClientComponent再由客户端水合绑定交互。
 **Server Component 不能直接 import Client Component，因为服务端无法执行客户端特定的代码（如 useState、window）；而 Client Component 可以接收 Server Component 作为 children，因为 Server Component 已在服务端渲染完毕，其输出作为静态内容嵌入 Client Component，无需在客户端重新执行。**
 
-#### 2.12 
+#### 2.12 Nodejs和Nextjs的区别是什么，使用过程有什么区别
 
 
 ### 3.BFF（Backend For FrontEnd）
