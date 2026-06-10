@@ -74,11 +74,13 @@ Server Component：代码运行在服务端的组件，
 Next.js中的流式渲染其实是对SSR的优化，SSR往往是将一整个完整的HTML生成后再返回给客户端，如果其中一个异步数据加载得很慢，那么首屏加载速度也会降低。所以AppRouter中出现了流式渲染，允许服务端将页面拆分成多个chunk，边渲染边发送到浏览器，配合Suspense部分，包裹住异步组件部分。让用户快速看到核心内容，慢速组件渐进加载，既提升了首屏性能又避免了白屏等待。
 浏览器通过 HTTP/1.1 **分块传输**（chunked response） 或 **HTTP/2** 逐步接收 HTML，并渐进式渲染。
 
-#### 2.6 Next.js中的性能优化：
+#### 2.6 Next.js中的性能优化
+
 优化首屏加载速度：
 基于不同的业务场景搭配使用ISR和SSG，SSR，提前输出HTML。正确地使用ServerComponent，减小JSbundle的体积，降低客户端加载解析js的时间，
 
 #### 2.7 Next.js中的缓存体系
+
 本质是 将 **HTTP缓存策略抽象到服务端数据获取层**，开发者在ServerComponent中通过fetch的cache和next.revalidate选项能够精细控制数据的缓存行为，从而减少重复请求、提升响应速度。同时还能且配合 revalidateTag 和 revalidatePath 实现按需清除缓存。
 
 - fetch在Next.js中的默认缓存行为：AppRouter ServerComponent -> cache: 'force-cache'. 请求结果会被持久化到数据缓存中，同一个fetch在所有用户、所有请求中共享缓存，直到重新验证或者手动清除。
@@ -86,7 +88,7 @@ Next.js中的流式渲染其实是对SSR的优化，SSR往往是将一整个完�
     - 'force-cache'  类比于长期的强缓存 Cache-Control max-age=31536000
     - 'no-store' 完全不使用缓存 Cache-Control：no-cache, no-store
     - next: { revalidate: 60 } 缓存有效期60s，过期后下次请求触发后台重新验证 Cache-Control max-age=60
-    - next: { tags: ['tag] } 
+    - next: { tags: ['tag] }
 
 - revalidate：next: { revalidate: 60 } 缓存有效期为 60 秒。
     请求第一次到达 → 从真实 API 获取数据并缓存，返回数据。
@@ -125,8 +127,8 @@ RSC会将ServerComponent解析为Flight协议定义的JSON-like数据格式，�
 
 #### 2.12 Nodejs和Nextjs的区别是什么，使用过程有什么区别
 
-
 ### 3.BFF（Backend For FrontEnd）
+
 为每种客户端（Web、iOS、Android 等）专门构建一个中间服务层，而不是让前端直接调用通用的微服务 API。
 API Routes 和 Server Components 天然都是 BFF 层。
 为什么需要 BFF？先看没有 BFF 的痛点
