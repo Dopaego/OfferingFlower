@@ -9,15 +9,15 @@ module.exports = defineConfig({
   fullyParallel: false,
   retries: 0,
   use: {
-    baseURL: 'http://127.0.0.1:3001',
+    baseURL: 'http://127.0.0.1:3101',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
   webServer: {
     command: 'npm run start:e2e',
-    url: 'http://127.0.0.1:3001',
-    reuseExistingServer: true,
+    url: 'http://127.0.0.1:3101',
+    reuseExistingServer: process.env.PW_REUSE_EXISTING_SERVER === 'true',
     timeout: 120_000,
   },
   projects: [
@@ -25,6 +25,18 @@ module.exports = defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
+      },
+    },
+    {
+      name: 'firefox',
+      use: {
+        ...devices['Desktop Firefox'],
+      },
+    },
+    {
+      name: 'webkit',
+      use: {
+        ...devices['Desktop Safari'],
       },
     },
   ],

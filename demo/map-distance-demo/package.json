@@ -4,10 +4,16 @@
   "private": true,
   "scripts": {
     "start": "webpack serve --config webpack.config.js --open",
-    "start:e2e": "webpack serve --config webpack.config.js --host 127.0.0.1 --port 3001 --no-open",
+    "start:e2e": "webpack serve --config webpack.config.js --host 127.0.0.1 --port 3101 --no-open",
     "build": "webpack --config webpack.config.js",
     "test:e2e": "playwright test",
-      "test:e2e:ui": "playwright test --ui",
+    "test:e2e:install": "playwright install",
+    "test:e2e:all": "playwright test --project=chromium --project=firefox --project=webkit",
+    "test:e2e:chromium": "playwright test --project=chromium",
+    "test:e2e:firefox": "playwright test --project=firefox",
+    "test:e2e:webkit": "playwright test --project=webkit",
+    "test:e2e:safari": "playwright test --project=webkit",
+    "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report"
