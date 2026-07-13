@@ -1,0 +1,52 @@
+{
+  "projectType": "webapp",
+  "devServer": {
+    "command": "npm",
+    "args": ["run", "start:e2e"],
+    "url": "http://127.0.0.1:3101/"
+  },
+  "setup": [
+    {
+      "command": "npm",
+      "args": ["install"]
+    }
+  ],
+  "assertions": [
+    {
+      "name": "tsc-no-emit",
+      "kind": "process",
+      "command": "npx",
+      "args": ["tsc", "--noEmit"],
+      "verificationMethod": "exit-code",
+      "expected": "0",
+      "timeoutSeconds": 180
+    },
+    {
+      "name": "webpack-build",
+      "kind": "process",
+      "command": "npm",
+      "args": ["run", "build"],
+      "verificationMethod": "exit-code",
+      "expected": "0",
+      "timeoutSeconds": 300
+    },
+    {
+      "name": "dev-server-serves-home",
+      "kind": "http-probe",
+      "startCommand": "npm",
+      "startArgs": ["run", "start:e2e"],
+      "url": "http://127.0.0.1:3101/",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "map-distance-e2e",
+      "kind": "playwright-route",
+      "scriptPath": "e2e/mapDistance.spec.ts",
+      "verificationMethod": "exit-code",
+      "expected": "0",
+      "timeoutSeconds": 300
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "planHash": "636a81738c4c80ddaf66d08a22652e2d1ce3784c297550ec4f98d4dbc1db5b80",
+  "phase": "baseline",
+  "recordedAtUtc": "2026-07-13T11:53:44.7994430Z",
+  "retryCount": 0,
+  "resetBaseline": false,
+  "result": {
+    "setupSucceeded": true,
+    "setupDurationMs": 9023,
+    "setupFailureOutput": null,
+    "assertions": [
+      {
+        "name": "tsc-no-emit",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": false,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 2,
+        "outputSample": "src/qiankun.ts(16,20): error TS1005: \u0027\u003E\u0027 expected.\nsrc/qiankun.ts(16,21): error TS1161: Unterminated regular expression literal.\nsrc/qiankun.ts(17,1): error TS1005: \u0027,\u0027 expected.\nsrc/qiankun.ts(29,20): error TS1005: \u0027\u003E\u0027 expected.\nsrc/qiankun.ts(29,21): error TS1161: Unterminated regular expression literal.\nsrc/qiankun.ts(30,1): error TS1005: \u0027,\u0027 expected.\n",
+        "durationMs": 8706
+      },
+      {
+        "name": "webpack-build",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\n\u003E map-distance-demo@1.0.0 build\n\u003E webpack --config webpack.config.js\n\nasset js/main.9d726598.js 3.56 MiB [emitted] [immutable] (name: main) 1 related asset\nasset index.html 1.84 KiB [emitted]\norphan modules 5.01 MiB [orphan] 2478 modules\nruntime modules 2.74 KiB 9 modules\ncacheable modules 2.67 MiB\n  modules by path ./node_modules/ 2.63 MiB 604 modules\n  modules by path ./src/ 40.9 KiB\n    modules by path ./src/components/MapDistanceMeasure/ 12 KiB 3 modules\n    modules by path ./src/*.tsx 1.59 KiB\n      ./src/index.tsx 249 bytes [built] [code generated]\n      ./src/App.tsx 1.35 KiB [built] [code generated]\n    modules by path ./src/features/mapDistance/*.ts 3.12 KiB\n      ./src/features/mapDistance/mapDistanceSlice.ts 2.66 KiB [built] [code generated]\n      ./src/features/mapDistance/mapDistanceSaga.ts 470 bytes [built] [code generated]\n    ./src/store/index.ts 670 bytes [built] [code generated]\n    ./src/hooks/useMapDistance.ts 23.5 KiB [built] [code generated]\n\nWARNING in ./src/components/MapDistanceMeasure/index.module.scss (./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[2].use[1]!./node_modules/sass-loader/dist/cjs.js!./src/components/MapDistanceMeasure/index.module.scss)\nModule Warning (from ./node_modules/sass-loader/dist/cjs.js):\nDeprecation The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.\n\nMore info: https://sass-lang.com/d/legacy-js-api\n @ ./src/components/MapDistanceMeasure/index.module.scss 8:6-187 22:17-24 26:0-157 26:0-157 27:22-29 27:33-47 27:50-64\n @ ./src/components/MapDistanceMeasure/index.tsx 16:0-41 80:15-26 83:17-33 96:23-38 150:19-38 167:17-28\n @ ./src/App.tsx 10:0-65 45:36-54\n @ ./src/index.tsx 3:0-24 6:30-33\n\nwebpack 5.88.2 compiled with 1 warning in 10370 ms\n",
+        "durationMs": 12222
+      },
+      {
+        "name": "dev-server-serves-home",
+        "kind": "http-probe",
+        "verificationMethod": "http-status",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": null,
+        "outputSample": "HTTP 200\n\u003C!DOCTYPE html\u003E\n\u003Chtml lang=\u0022zh-CN\u0022\u003E\n  \u003Chead\u003E\n    \u003Cmeta charset=\u0022UTF-8\u0022 /\u003E\n    \u003Cmeta name=\u0022viewport\u0022 content=\u0022width=device-width, initial-scale=1.0\u0022 /\u003E\n    \u003Ctitle\u003E\u5730\u56FE\u6D4B\u8DDD Demo \u2014 \u767E\u5EA6\u5730\u56FE BMapGL\u003C/title\u003E\n    \u003Cstyle\u003E\n      * { margin: 0; padding: 0; box-sizing: border-box; }\n      body { font-family: -apple-system, BlinkMacSystemFont, \u0027Segoe UI\u0027, sans-serif; background: #f5f5f5; }\n      html, body, #root { height: 100%; }\n    \u003C/style\u003E\n    \u003C!--\n      \u767E\u5EA6\u5730\u56FE JSAPI GL\uFF08WebGL v1.0\uFF09\n      \u7533\u8BF7 ak: https://lbsyun.baidu.com/apiconsole/key\n      Referer \u767D\u540D\u5355\u9700\u5305\u542B\u5F53\u524D\u5F00\u53D1\u7AEF\u53E3\uFF08\u4F8B\u5982 http://localhost:3002/*\uFF09\n      callback=initBMap\uFF1ASDK \u52A0\u8F7D\u5B8C\u6210\u540E\u4F1A\u89E6\u53D1 window.initBMap \u5E76\u6D3E\u53D1 bmap-loaded \u4E8B\u4EF6\n\n      \u91CD\u8981\uFF1A\u767E\u5EA6\u5730\u56FE SDK \u5728 \u003Chead\u003E \u4E2D\u52A0\u8F7D\u4F1A\u56E0 \u003Cbody\u003E \u5C1A\u672A\u89E3\u6790\u800C\u6267\u884C appendChild(null) \u62A5\u9519\uFF0C\n      \u56E0\u6B64\u5FC5\u987B\u5C06 \u003Cscript\u003E \u653E\u7F6E\u5728 \u003Cbody\u003E \u672B\u5C3E\u3001#root \u4E4B\u540E\u3002\n    --\u003E\n    \u003Cscript\u003E\n      // \u5168\u5C40\u52A0\u8F7D\u72B6\u6001\u6807\u5FD7\u4F4D\uFF0C\u4F9B React \u7AEF\u8F6E\u8BE2/\u611F\u77E5\uFF08\u907F\u514D\u4E00\u6B21\u6027\u4E8B\u4EF6\u88AB\u9519\u8FC7\uFF09\n      window.__BMAP_LOADED__ = false;\n      window.initBMap = function () {\n        var startedAt = Date.now();\n        var tick = function () {\n          if (window.BMapGL \u0026\u0026 typeof window.BMapGL.Map === \u0027function\u0027) {\n            window.__BMAP_LOADED__ = true;\n            try { window.dispatchEvent(new Event(\u0027bmap-loaded\u0027)); } catch (e) {}\n            return;\n          }\n          if (Date.now() - startedAt \u003E 15000) return;\n          setTimeout(tick, 50);\n        };\n        tick();\n      };\n    \u003C/script\u003E\n  \u003Cscript defer src=\u0022js/main.dbc1ac45.js\u0022\u003E\u003C/script\u003E\u003C/head\u003E\n  \u003Cbody\u003E\n    \u003Cdiv id=\u0022root\u0022\u003E\u003C/div\u003E\n    \u003C!-- \u767E\u5EA6\u5730\u56FE SDK \u5FC5\u987B\u653E\u5728 body \u672B\u5C3E --\u003E\n    \u003Cscript type=\u0022text/javascript\u0022 src=\u0022https://api.map.baidu.com/api?type=webgl\u0026v=1.0\u0026ak=pV9jJMCCLHf3n0M8o18b4TWx2An5ce1d\u0026callback=initBMap\u0022\u003E\u003C/script\u003E\n  \u003C/body\u003E\n\u003C/html\u003E",
+        "durationMs": 42
+      },
+      {
+        "name": "map-distance-e2e",
+        "kind": "playwright-route",
+        "verificationMethod": "exit-code",
+        "passed": false,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 1,
+        "outputSample": "Error: http://127.0.0.1:3101 is already used, make sure that nothing is running on the port/url or set reuseExistingServer:true in config.webServer.\n\n",
+        "durationMs": 2308
+      }
+    ]
+  }
+}
