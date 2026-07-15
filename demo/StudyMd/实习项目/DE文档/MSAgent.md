@@ -8,4 +8,8 @@
 
 设计 Orchestrator-Worker 架构，由主 Agent 负责意图识别、任务拆解、工具路由和结果聚合，Browser Agent、Project Agent 等 Worker 负责浏览器验证与工程流水线执行。
 
+技术实现：
 
+- 将任务拆解成 plan - execute - validate - summarize，每个worker使用统一协议返回 规定格式的数据 例如，taskId、status、result、error、nextAction等
+- LLM只负责决策和参数生成，参数校验、权限检查、状态机、结果解析等确定性逻辑由代码完成
+- 对工具增加超时、重试次数和失败原因，避免异常直接交给模型自由发挥。
