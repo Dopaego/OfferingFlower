@@ -1,0 +1,269 @@
+# 面试题库
+
+> 每题给出：**30 秒回答**（口播）→ **2 分钟展开**（有细节）→ **代码证据**（指到文件）→ **常见追问**。
+
+面试官的评估维度不是"你会不会"，而是"你有没有真正踩过、想过、权衡过"。所以每条答案都必须能落到代码或实验记录上。
+
+---
+
+## 第 1 组：Day 1 —— 工程骨架 & TypeScript
+
+### Q1. 为什么用 monorepo？在这个项目里 npm workspaces 而不是 pnpm/turbo？
+
+**30 秒**：Agent 项目里 API、Worker、共享类型必须共用一份数据契约，否则一改就漂。npm workspaces 是 Node 原生支持，零外部工具就能实现软链和统一安装。学生作品没有多版本发布诉求，pnpm 的硬链节省和 turbo 的缓存收益不是刚需，先用 npm workspaces，等瓶颈出现再迁。
+
+**2 分钟展开**：
+
+- 三个层次的需求：跨包**类型共享**（必须）、跨包**依赖软链**（必须）、跨包**构建缓存**（可选）。前两个 npm workspaces 都能满足。
+- pnpm 的优势在磁盘和 phantom dependency，学生项目量级看不出差异。
+- Turborepo 的价值在大项目 CI 加速，我这里 `tsc --build` 已经有增量缓存。
+- 迁移成本：npm workspaces → pnpm 只需要换 lockfile 和调整 hoisting；不会锁死未来。
+
+**代码证据**：[package.json](../../package.json) 的 `workspaces` 字段、[tsconfig.json](../../tsconfig.json) 的 `references`。
+
+**常见追问**：
+
+- "如果两个 workspace 依赖同一个包的不同版本会怎样？" → npm workspaces 会尝试 hoist，失败则在子包 `node_modules` 单独安装；pnpm 用符号链接彻底隔离。
+- "workspaces 里能不能只发布其中一个包？" → 可以，`npm publish --workspace @stu/shared`。但学生项目全部 `private: true`。
+
+---
+
+### Q2. `tsc` 和 `tsc --build` 有什么区别？
+
+**30 秒**：`tsc` 是"编译当前 tsconfig 覆盖的文件"；`tsc --build` 是"按 project references 拓扑排序，增量编译整个图"。monorepo 里跨包引用必须用后者，因为它才会先编译被依赖的包、写出 `.d.ts`，再编译上游。
+
+**2 分钟展开**：
+
+- `tsc --build` 会读 `references` 字段，构建依赖 DAG。
+- 每个包生成 `.tsbuildinfo`，二次编译只处理改过的包。
+- 上游包 IDE 里跳转到 `packages/shared/dist/index.d.ts`，和真实 npm 包体验一致。
+- `composite: true` 是 project references 的前置条件，它强制打开 `declaration + incremental`。
+
+**代码证据**：根 [tsconfig.json](../../tsconfig.json) 的 `references` 数组；[packages/shared/tsconfig.json](../../packages/shared/tsconfig.json) 的 `composite`。
+
+**常见追问**：
+
+- "改了 shared 的类型，api 里为什么没立刻报错？" → IDE 用的是 `.d.ts`，需要重跑 `tsc --build` 或让 IDE 认识 project references（VS Code 默认支持）。
+
+---
+
+### Q3. `noUncheckedIndexedAccess` 会在哪种真实 bug 上救你？
+
+**30 秒**：默认下 `arr[0]` 的类型是 `T`，但运行时可能是 `undefined`。打开后类型系统会强迫我判空。比如从 BullMQ 拿一个 job 的 `job.data.tools[0].name`，如果没打开我可能直接读取空数组的第一项，运行时 `TypeError: cannot read property 'name' of undefined`。打开后 TS 会先要求我处理 `undefined`。
+
+**2 分钟展开**：
+
+- 前端里 `params.get('id')` 也是同一类问题——`URLSearchParams.get` 返回 `string | null`，但很多人直接当 `string` 用。
+- 打开后代码变啰嗦，但 bug 减少。项目里我用**类型守卫函数**（如 `assertNonEmpty(arr)`）在数据边界一次判定，内部就当作非空访问，可读性和安全性兼顾。
+
+**代码证据**：[tsconfig.base.json](../../tsconfig.base.json) 打开的 flag 集合。
+
+**常见追问**：
+
+- "那 `Record<string, User>` 里 `map[id]` 也会变成可空？" → 是的，这是特性不是 bug。它逼你区分"确定存在的字段"和"来自外部的 key"。
+
+---
+
+### Q4. `"type": "module"` 打开后为什么 `import` 要写 `.js` 后缀？
+
+**30 秒**：ESM 规范要求 import 路径必须是**完整 URL**，Node 不做后缀猜测。TypeScript 编译后 `.ts` → `.js`，所以源代码里就要写目标文件名 `.js`，即使当前源文件是 `.ts`。这是一个"写起来别扭但符合规范"的取舍。
+
+**2 分钟展开**：
+
+- CommonJS 时代 Node 会尝试 `./foo`, `./foo.js`, `./foo/index.js` 一堆猜测，规范化后不再猜。
+- 用 `moduleResolution: NodeNext` 时 TS 会强制这个规则，避免编译出跑不起来的产物。
+- 目前 workspace 依赖走 `@stu/shared` 这种"包名 import"，不受影响；只有本包内相对路径需要 `.js`。
+
+---
+
+### Q5. `tsx` 不做类型检查，为什么开发期还敢用？
+
+**30 秒**：类型检查放到 IDE 和 CI，运行时用最快的转译工具就行。IDE 已经实时报错，CI 有 `tsc --build` 门禁；tsx 只负责"把 TS 变成能跑的 JS"。这样开发反馈快，CI 又能拦住类型问题，两不误。
+
+**2 分钟**：
+
+- `ts-node` 会在启动时做类型检查，冷启动慢。
+- `tsx` 底层 esbuild，只做 syntactic transpile，快一个量级。
+- 生产不能用 tsx，因为它假设有 TS 工具链。生产走 `tsc --build` 出来的 `dist/`，然后 `node dist/index.js`。
+
+**代码证据**：`apps/api/package.json` 的 `dev` 用 tsx，`start` 用 node。
+
+---
+
+### Q6. Worker 收到 SIGTERM 正在处理任务，正确做法？
+
+**30 秒**：
+
+1. 立刻从队列**停止接单**（BullMQ 里是 `worker.close()`）。
+2. 等 in-flight job 处理完毕（或者达到宽限期）。
+3. 关掉 PostgreSQL 连接池和 Redis 连接。
+4. `process.exit(0)`。
+
+错误做法：直接 `process.exit(0)` 或不监听 → 容器编排给 SIGKILL → 未完成的 job 变 stalled，靠重试机制续跑，浪费一次 LLM 调用 + 可能副作用重复。
+
+**2 分钟展开**：
+
+- `docker stop` 默认 10 秒宽限；Kubernetes `terminationGracePeriodSeconds` 默认 30 秒。宽限期内没退出就 SIGKILL。
+- Worker 要设计成"任何一步都可幂等重放"，光靠 graceful 不够，还要靠 `jobId` 幂等 + `task_steps` 追加式日志。
+- 我这个项目里的 `TaskState` 状态机就是为了这个：即便 Worker 崩溃，Orchestrator 重启后能读 PG `tasks + task_steps` 重建 Blackboard。
+
+**代码证据**：[apps/worker/src/index.ts](../../apps/worker/src/index.ts) 的信号处理骨架（Day 6 会补完整逻辑）。
+
+---
+
+## 第 2 组：Day 2 —— Docker Compose
+
+### Q7. 镜像、容器、数据卷分别是什么？为什么 PostgreSQL 不能只依赖容器文件系统？
+
+**30 秒**：镜像是不可变模板，容器是它启动后的运行实例，卷是独立于容器生命周期的持久化存储。PostgreSQL 数据写在容器文件系统中，删除并重建容器会丢数据；所以我把 `/var/lib/postgresql/data` 挂到命名卷。这样 `docker compose down` 后再次启动，Issue 和任务日志仍在。
+
+**2 分钟展开**：
+
+- 镜像用分层文件系统分发，例如 `postgres:16-alpine`；同一镜像可创建多个容器。
+- 容器的可写层应当视为易失的，升级镜像或重建环境时会消失。
+- 命名卷由 Docker 管理，不绑定宿主机绝对路径，适合本地开发；生产常改为云盘或托管数据库。
+- 这里 Redis 也使用命名卷并开启 AOF，但它只是队列和热状态的加速层，真正可追溯的 Task 事实仍要落 PostgreSQL。
+
+**代码证据**：[docker-compose.yml](../../docker-compose.yml) 的 `postgres-data`、`redis-data` 和服务 `volumes` 配置。
+
+**常见追问**：
+
+- "`docker compose down` 和 `down -v` 区别？" → 前者删除容器、网络，保留命名卷；后者连命名卷一起删除，所以会清库。
+- "为什么不用 bind mount？" → 本项目数据库数据不需要由编辑器直接读写，命名卷跨 macOS / Linux 更少权限和性能差异；源代码才更适合 bind mount。
+
+---
+
+### Q8. 容器显示 running 就代表数据库可用吗？
+
+**30 秒**：不代表。`running` 只说明 PID 1 还活着，PostgreSQL 可能仍在初始化或恢复数据。我要用 healthcheck 明确判断就绪：PostgreSQL 用 `pg_isready`，Redis 用 `redis-cli ping`，Compose 用 `up -d --wait` 等待健康检查通过后才让后续服务启动或测试执行。
+
+**2 分钟展开**：
+
+- readiness 与 liveness 要区分：liveness 表示进程没死，readiness 表示当前能处理请求。Compose 的 healthcheck 在本地把这两者简化了，但生产会将其映射为 Kubernetes liveness/readiness probes。
+- 仅等待固定 `sleep 5` 是脆弱方案，机器性能、首次初始化和恢复时间都会变化。
+- Day 4 的 API 和 Day 5 的 Worker 启动时应依赖数据库和 Redis 健康，连接失败也需要有限重试，而不是无限 crash loop。
+
+**代码证据**：[docker-compose.yml](../../docker-compose.yml) 的两个 `healthcheck` 与 `start_period`。
+
+---
+
+### Q9. Docker 代理配置后，访问 Docker Registry 返回 401 是失败吗？
+
+**30 秒**：不是。Docker Registry 的 `/v2/` 匿名探测通常返回 `401 Unauthorized` 并带认证挑战头，含义是网络已经连到 Registry，只是请求没有携带镜像拉取令牌。之前超时才是网络故障；配置 Docker Desktop 代理后从超时变为 401，说明代理链路恢复。
+
+**2 分钟展开**：
+
+- 拉取镜像不是只访问一个 URL，还会访问 token 服务和分层 blob。Docker daemon 必须使用代理，只有终端设置代理不一定足够。
+- 我用 `curl --connect-timeout 10 https://registry-1.docker.io/v2/` 区分了网络不可达和正常认证挑战。
+- Docker Desktop 的 daemon 代理显示为 `http.docker.internal:3128`，所以 Compose 拉取完成；这个排障过程比盲目重复 `docker pull` 更可复现。
+
+---
+
+### Q10. 为什么 Compose 使用 bridge 网络和服务名，而不是固定容器 IP？
+
+**30 秒**：容器 IP 会在重建后变化，Compose 的 bridge 网络提供 DNS，容器可稳定用服务名 `postgres` 和 `redis` 发现依赖。固定 IP 会把部署细节写死，扩容或重建都会变脆。
+
+**2 分钟展开**：
+
+- 本机 API 通过端口映射 `127.0.0.1:5432`、`127.0.0.1:6379` 连接；未来 API 容器化后，会用 `postgres:5432` 和 `redis:6379`。
+- 端口映射是给宿主机或外部客户端的，容器内同网络通信不经过宿主机端口。
+- 目前网络没有启用 `internal: true`，因为 Day 3 的 Node 进程先运行在宿主机；到 Week 4 全部容器化时会重新评估数据库端口是否还需暴露。
+
+## 第 3 组：Day 3 —— PostgreSQL
+
+### Q11. 什么是 Migration？为什么不直接在数据库终端手动建表？
+
+**30 秒**：Migration 是数据库结构的版本化变更记录，类似数据库的 Git 提交。它把“创建表、索引、约束”写进仓库，任何环境执行同一组 migration 都能获得相同 schema。手动在终端建表不可追溯，也无法保证开发机、CI 和生产环境一致。
+
+**2 分钟展开**：
+
+- 每个 migration 有 `up` 和 `down`：`up` 升级结构，`down` 回退最近一次升级。
+- `node-pg-migrate` 用 `agent_schema_migrations` 表记录已执行版本，所以 `npm run db:migrate` 可安全重复执行。
+- 线上 migration 不等于随时可以回退：删除字段或表可能造成数据损失。因此本地项目的 `down` 用于学习和实验，生产更常见的是写一条新的“修复 migration”。
+
+**代码证据**：[初始 migration](../../packages/db/migrations/1710720000000_initial-schema.js)、[@stu/db 脚本](../../packages/db/package.json)。
+
+---
+
+### Q12. 为什么要拆分 `issues`、`tasks` 和 `task_steps`，不放进一张表？
+
+**30 秒**：它们代表不同层级的事实。Issue 是用户的缺陷单，一个 Issue 可以多次触发 Agent；Task 是一次执行；Task Step 是这次执行的步骤审计。拆开后能表达一对多关系，也能查询同一 Issue 的重试历史以及一次 Task 的完整工具调用过程。
+
+**2 分钟展开**：
+
+- `issues → tasks` 用外键，且 `ON DELETE RESTRICT`：已有任务历史时不允许直接删 Issue。
+- `tasks → task_steps` 用 `ON DELETE CASCADE`：若测试环境删除 Task，其步骤不应留下孤儿数据。
+- `task_steps` 的 `(task_id, sequence)` 唯一约束为 Worker 重试提供基础，防止同一步骤重复记录。
+- 这也是 Agent 可观测性的基础：出错时不只看到“失败”，还能定位到哪一个工具、输入摘要、耗时和错误。
+
+**代码证据**：[初始 migration](../../packages/db/migrations/1710720000000_initial-schema.js)。
+
+---
+
+### Q13. JSONB 和普通列分别什么时候用？
+
+**30 秒**：稳定、常查询、需要关联或排序的字段用普通列，例如 `status`、`issue_id`、`created_at`；结构可能随工具变化的附加上下文用 JSONB，例如 `task_steps.input/output/error`。JSONB 是灵活性，不是逃避建模。
+
+**2 分钟展开**：
+
+- Agent 不同工具的输入输出格式不同，全部为它们建固定列会导致 schema 快速膨胀，所以用 JSONB 保存结构化证据。
+- 任务状态会高频筛选，必须是普通 `TEXT` 列并加索引，不能藏在 JSONB。
+- PostgreSQL 可以查询和索引 JSONB，但查询复杂、约束弱；只有真实出现按 JSON 字段过滤的热点需求时，才考虑添加 JSONB 的 GIN 索引。
+
+**代码证据**：[初始 migration](../../packages/db/migrations/1710720000000_initial-schema.js) 中 `tasks.status` 与 `task_steps.input/output` 的对比。
+
+---
+
+### Q14. 为什么用连接池？连接池大小如何思考？
+
+**30 秒**：建数据库连接有认证和网络开销，且 PostgreSQL 能承受的连接数有限。连接池复用少量连接，避免每个请求都建立新连接。`PG_POOL_MAX=10` 是本地起点；生产要按实例数、Worker 数和数据库最大连接数计算，不能盲目设很大。
+
+**2 分钟展开**：
+
+- 本项目每个 Node 进程只持有一个共享 `Pool`，而不是每次 query 都 `new Pool()`。
+- 粗略约束是：所有 API 实例 Pool 上限 + Worker 连接 + 管理余量，不应超过数据库 `max_connections`。
+- Pool 太小：请求排队，延迟上升；Pool 太大：数据库上下文切换、内存占用增加，最终拒绝连接。
+- 事务从 Pool 借出特定 client，结束后必须 `release()`；不释放会造成连接泄漏。
+
+**代码证据**：[数据库连接池](../../packages/db/src/index.ts) 的 `getPool()`、`createPool()`、`closePool()`。
+
+---
+
+### Q15. 参数化查询如何防止 SQL 注入？
+
+**30 秒**：SQL 结构和用户数据必须分开。SQL 写成 `WHERE external_id = $1`，用户值放数组 `[externalId]` 交给 `pg` 驱动。这样单引号和恶意字符只会被当成数据，不会被拼进 SQL 语法。
+
+**2 分钟展开**：
+
+- 错误写法是模板字符串拼接：`... WHERE id = '${id}'`。它既可能因单引号报错，也可能让恶意输入改变查询语义。
+- 参数化不是只保护 SELECT；INSERT、UPDATE、DELETE 都应使用占位符。
+- 表名和列名不能用 `$1` 参数化。如果确实需要动态表名，应该使用代码白名单，而不是接受用户字符串。
+
+**代码证据**：[集成测试](../../packages/db/test/database.integration.test.ts) 使用含单引号的输入验证参数化往返。
+
+---
+
+### Q16. 事务中的 `BEGIN`、`COMMIT`、`ROLLBACK`、`release()` 分别做什么？
+
+**30 秒**：`BEGIN` 开始一组原子操作；全部成功才 `COMMIT` 持久化；任意一步失败就 `ROLLBACK` 撤销本次事务的写入；最后 `release()` 把连接还给连接池。前三个保证数据一致性，最后一个避免连接池泄漏。
+
+**2 分钟展开**：
+
+- 创建 Task 通常要同时写 Task 主记录和首个步骤。没有事务时可能只写成功一半。
+- `withTransaction()` 中的 `finally` 无论成功、回滚失败还是抛出异常都会执行，确保连接归还。
+- 当前默认隔离级别是 PostgreSQL 的 `READ COMMITTED`，对本项目当前“创建一次任务并追加步骤”的场景够用。若未来需要同时抢占同一个任务，需要研究行锁、乐观锁或更高隔离级别。
+- 测试中故意插入 Issue 后抛出异常，随后查到数量为 0，证明回滚真实生效。
+
+**代码证据**：[事务封装](../../packages/db/src/index.ts)、[回滚集成测试](../../packages/db/test/database.integration.test.ts)。
+
+## 第 4 组：Day 4 —— Express + Zod
+
+> 待填充。
+
+## 第 5 组：Day 5 —— Redis + BullMQ
+
+> 待填充。
+
+## 第 6 组：Day 6 —— 故障恢复
+
+> 待填充。

@@ -1,0 +1,28 @@
+{
+  "name": "@stu/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "migrate": "DATABASE_URL=${DATABASE_URL:-postgres://agent:agent_dev_pw@127.0.0.1:5432/issue_agent} node-pg-migrate up --migrations-dir migrations --migrations-table agent_schema_migrations --database-url-var DATABASE_URL --migrations-table-schema public",
+    "migrate:down": "DATABASE_URL=${DATABASE_URL:-postgres://agent:agent_dev_pw@127.0.0.1:5432/issue_agent} node-pg-migrate down --migrations-dir migrations --migrations-table agent_schema_migrations --database-url-var DATABASE_URL --migrations-table-schema public",
+    "test": "tsx --test test/**/*.test.ts"
+  },
+  "dependencies": {
+    "node-pg-migrate": "^8.0.4",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.5"
+  }
+}

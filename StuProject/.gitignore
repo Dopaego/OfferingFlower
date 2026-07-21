@@ -1,0 +1,33 @@
+node_modules/
+dist/
+build/
+coverage/
+.DS_Store
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Editor
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Test artifacts
+playwright-report/
+test-results/
+
+# Runtime data
+pids
+*.pid
+*.seed

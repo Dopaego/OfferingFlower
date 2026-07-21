@@ -1,0 +1,17 @@
+{
+  "name": "@stu/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc --build",
+    "start": "node dist/index.js",
+    "clean": "tsc --build --clean"
+  },
+  "dependencies": {
+    "@stu/db": "*",
+    "@stu/shared": "*"
+  }
+}
