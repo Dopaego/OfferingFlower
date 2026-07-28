@@ -112,3 +112,32 @@ npm run db:migrate:down
 
 - 讲义：[../knowledge/day3-postgresql-data-layer.md](../knowledge/day3-postgresql-data-layer.md)
 - 面试题：[../interview/qa.md](../interview/qa.md) 第 3 组
+
+## Day 4 验收清单 ✅
+
+- [x] Express API 提供 `GET /health`、Issue 创建/查询、Task 创建/查询。
+- [x] Zod 在 HTTP 边界校验请求体和 UUID 路径参数；错误响应统一为 `VALIDATION_ERROR` 或业务错误码。
+- [x] 每个请求具有 `traceId`，响应头 `x-trace-id`、日志、Task 与审计步骤均可关联。
+- [x] API 以 `idempotency-key` 对重复创建 Task 去重；首次返回 `202`，重复返回已有 Task 的 `200`。
+- [x] `npm run test --workspace @stu/api` 通过 2 个真实 PostgreSQL HTTP 集成测试。
+
+## Day 5 验收清单 ✅
+
+- [x] API 使用 BullMQ `task-execution` 队列，固定 `jobId = taskId`。
+- [x] Worker 消费真实 Redis job，将状态、摘要和步骤写入 PostgreSQL。
+- [x] Redis 短期进度 key 使用 `task:{taskId}:progress` 命名与 24 小时 TTL。
+- [x] `npm run test --workspace @stu/worker` 验证真实 Redis、BullMQ 与 PostgreSQL 的完成链路。
+
+## Day 6 验收清单 ✅
+
+- [x] API / Worker 均处理 SIGINT/SIGTERM；Worker 先 `worker.close()`，再关闭 Redis 与 PostgreSQL 连接。
+- [x] BullMQ 采用 3 次尝试和指数退避；最终失败写入 `failed`、错误码和审计步骤。
+- [x] 启动恢复协调器从 PostgreSQL 非终态 Task 重建缺失 job，并对已有 job 保持幂等。
+- [x] 自动化实验验证恢复重入队、三次失败重试与最终失败持久化；记录见 [恢复实验](../labs/week1-recovery.md)。
+
+## Day 4-6 学习产出
+
+- [Day 4：Express、Zod 与 API](../knowledge/day4-express-zod-api.md)
+- [Day 5：Redis、BullMQ 与 Worker](../knowledge/day5-redis-bullmq.md)
+- [Day 6：重试、优雅退出与恢复](../knowledge/day6-failure-recovery.md)
+- [面试题](../interview/qa.md) 第 4-6 组

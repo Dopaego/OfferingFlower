@@ -19,6 +19,7 @@
     "test": "tsx --test test/**/*.test.ts"
   },
   "dependencies": {
+    "@stu/shared": "*",
     "node-pg-migrate": "^8.0.4",
     "pg": "^8.16.3"
   },

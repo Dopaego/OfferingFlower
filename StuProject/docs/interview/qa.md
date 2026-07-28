@@ -258,12 +258,74 @@
 
 ## 第 4 组：Day 4 —— Express + Zod
 
-> 待填充。
+### Q17. 为什么有 TypeScript 还要 Zod？
+
+**30 秒**：TypeScript 只在编译期存在，HTTP JSON 到服务端时仍然是未知数据。Zod 在运行时检查 title、description、UUID 等边界条件；校验失败返回固定的 `400 VALIDATION_ERROR`，不会让坏数据进 PostgreSQL。
+
+**2 分钟展开**：类型描述的是“我希望数据长什么样”，schema 是“我在运行时实际验证数据长什么样”。边界只校验一次，内部逻辑可以信任已解析的类型；这比在每层 scattered `if` 更清晰。Schema 还让错误响应契约可测试。
+
+**代码证据**：[apps/api/src/app.ts](../../apps/api/src/app.ts)、[API 集成测试](../../apps/api/test/api.integration.test.ts)。
+
+**常见追问**："Zod 是否会自动防 SQL 注入？" → 不会。它负责格式与业务边界；SQL 注入仍靠 `pg` 参数化查询。
+
+### Q18. traceId 如何跨 API、队列和 Worker 传播？
+
+**30 秒**：API 优先使用请求头 `x-trace-id`，没有就生成 UUID，并回写到响应头。创建 Task 时写进 PostgreSQL；入 BullMQ job 时放进 job data；Worker 写审计步骤时继续携带。因此可以从 HTTP 日志定位到同一次后台执行。
+
+**2 分钟展开**：traceId 不是数据库主键，也不是幂等键。它是观测关联键；Task UUID 是实体标识；idempotency key 是重复请求去重键。三者混用会让排障变得模糊。
+
+**代码证据**：[apps/api/src/app.ts](../../apps/api/src/app.ts)、[packages/db/src/repository.ts](../../packages/db/src/repository.ts)。
+
+### Q19. HTTP 202 与 200/201 有什么不同？
+
+**30 秒**：`201 Created` 表示 Issue 已创建；`202 Accepted` 表示 Task 已持久化且已被接受为异步工作，但不代表 Agent 完成。重复幂等请求返回已有 Task 的 `200`。
+
+**代码证据**：[apps/api/src/app.ts](../../apps/api/src/app.ts)、[Day 4 讲义](../knowledge/day4-express-zod-api.md)。
 
 ## 第 5 组：Day 5 —— Redis + BullMQ
 
-> 待填充。
+### Q20. 为什么 PostgreSQL 和 Redis 同时存在？
+
+**30 秒**：PostgreSQL 记录可审计的业务事实，Redis 支撑高吞吐队列和短期进度。Redis 可重启或清空，不能成为唯一事实源；恢复时以 PG 的非终态 Task 重建队列。
+
+**代码证据**：[packages/db/migrations/1710720000000_initial-schema.js](../../packages/db/migrations/1710720000000_initial-schema.js)、[apps/worker/src/recovery.ts](../../apps/worker/src/recovery.ts)。
+
+### Q21. `jobId = taskId` 是如何实现幂等的？
+
+**30 秒**：Task 的 UUID 已经是一次执行的稳定身份；入队复用为 BullMQ `jobId`，重复调用不会制造不同 ID 的第二个 job。API 层还用数据库唯一 `idempotency_key` 阻止重复创建 Task。
+
+**2 分钟展开**：队列幂等只能减少重复投递，不能自动消除外部副作用重复。因此未来 LLM、评论、补丁应用仍要用 Task Step/状态检查点记录“是否已经完成”。
+
+**代码证据**：[packages/shared/src/queue.ts](../../packages/shared/src/queue.ts)、[apps/api/src/app.ts](../../apps/api/src/app.ts)。
+
+### Q22. TTL 为什么设为 24 小时？
+
+**30 秒**：`task:{taskId}:progress` 是 UI 短期进度，不是审计记录，设 24 小时防止 Redis 无限增长。真正的 Task、步骤和错误码在 PostgreSQL，不随 TTL 删除。
+
+**代码证据**：[apps/worker/src/worker.ts](../../apps/worker/src/worker.ts)。
 
 ## 第 6 组：Day 6 —— 故障恢复
 
-> 待填充。
+### Q23. Worker 收到 SIGTERM 时为什么先 `worker.close()`？
+
+**30 秒**：它先停止领取新 job，再等待当前 in-flight job 完成；之后才关闭 DB pool 并退出。直接 `process.exit()` 会让执行中的任务半途消失，增加 stalled 和重复执行概率。
+
+**代码证据**：[apps/worker/src/index.ts](../../apps/worker/src/index.ts)。
+
+### Q24. 重试策略如何避免无限消耗资源？
+
+**30 秒**：队列默认最多 3 次、指数退避。最后一次仍失败就把 Task 写为 `failed`、记录 `WORKER_EXECUTION_FAILED` 和失败 Step；需要人判断的未来可转 `needs_review`。
+
+**代码证据**：[packages/shared/src/queue.ts](../../packages/shared/src/queue.ts)、[恢复测试](../../apps/worker/test/recovery.integration.test.ts)。
+
+### Q25. Redis 清空后任务为什么不会永久丢失？
+
+**30 秒**：因为先落 PG 再入队。Worker 启动时扫描 PG 中所有非终态 Task；没有对应 job 就按固定 `taskId` 重建，已有 job 就不重复创建。自动化实验已经验证第一次补 job、第二次幂等跳过。
+
+**代码证据**：[apps/worker/src/recovery.ts](../../apps/worker/src/recovery.ts)、[恢复实验](../labs/week1-recovery.md)。
+
+### Q26. 面对“线上任务重复执行”你怎么回答？
+
+**30 秒**：先承认 BullMQ 属于至少一次处理，不能承诺队列层 exactly-once。然后说明分层措施：API 幂等键、`jobId=taskId`、数据库审计步骤、外部副作用前的检查点和恢复协调。最后说明会监控重复率、failed 数、队列积压和恢复数量。
+
+**真实场景回答**：我会先暂停高风险副作用（例如自动应用补丁），保留 Task/Step 证据，按幂等键和 traceId 定位重复来源；对已完成副作用打业务去重标记，再安全重放未完成步骤。

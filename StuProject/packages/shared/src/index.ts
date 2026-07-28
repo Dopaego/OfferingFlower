@@ -10,18 +10,28 @@ export const APP_NAME = "frontend-issue-agent" as const;
 /**
  * 任务的状态机（Week 2 会用到）。这里先声明，让 API/Worker/前端引用同一个真值来源。
  */
-export type TaskStatus =
-  | "queued"
-  | "planning"
-  | "reproducing"
-  | "searching"
-  | "proposing"
-  | "awaiting_approval"
-  | "applying"
-  | "validating"
-  | "succeeded"
-  | "failed"
-  | "needs_review";
+export const TASK_STATUSES = [
+  "queued",
+  "planning",
+  "reproducing",
+  "searching",
+  "proposing",
+  "awaiting_approval",
+  "applying",
+  "validating",
+  "succeeded",
+  "failed",
+  "needs_review",
+] as const;
+
+export type TaskStatus = (typeof TASK_STATUSES)[number];
 
 /** 全局唯一请求追踪 ID —— 在 API 中间件生成，贯穿日志和 task_steps.trace_id */
 export type TraceId = string;
+
+export const TASK_EXECUTION_QUEUE = "task-execution" as const;
+
+export type TaskExecutionJobData = {
+  taskId: string;
+  traceId: TraceId;
+};

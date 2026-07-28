@@ -1,19 +1,30 @@
-/**
- * @stu/api — HTTP 入口
- *
- * Day 1: 只启动一个占位进程，验证 workspace 依赖能被解析。
- * Day 4: 会替换为 Express + Zod + Pino 的完整实现。
- */
+import { closePool } from "@stu/db";
+import { closeTaskQueue } from "@stu/shared/queue";
 
-import { APP_NAME, type TaskStatus } from "@stu/shared";
-import { readDatabaseConfig } from "@stu/db";
+import { buildApp } from "./app.js";
 
-// 使用一下类型和常量，避免 TS 报"未使用"
-const bootStatus: TaskStatus = "queued";
-const databaseConfig = readDatabaseConfig();
+const rawPort = process.env["API_PORT"] ?? "4000";
+const port = Number(rawPort);
+if (!Number.isInteger(port) || port <= 0) {
+  throw new Error(`API_PORT 必须是正整数，当前值为: ${rawPort}`);
+}
 
-console.log(
-  `[api] ${APP_NAME} boot placeholder | db=${databaseConfig.host}:${databaseConfig.port}/${databaseConfig.database} | initialStatus=${bootStatus}`,
-);
-console.log("[api] Day 3 目标：workspace 依赖打通、PostgreSQL 配置可读取。");
-console.log("[api] Day 4 会在这里启动 Express，监听 API_PORT。");
+const server = buildApp().listen(port, () => {
+  console.log(`[api] listening on http://127.0.0.1:${port}`);
+});
+
+let isShuttingDown = false;
+async function shutdown(signal: string): Promise<void> {
+  if (isShuttingDown) {
+    return;
+  }
+  isShuttingDown = true;
+  console.log(`[api] received ${signal}; closing HTTP server and connections...`);
+  server.close(async () => {
+    await Promise.all([closeTaskQueue(), closePool()]);
+    process.exit(0);
+  });
+}
+
+process.on("SIGINT", () => void shutdown("SIGINT"));
+process.on("SIGTERM", () => void shutdown("SIGTERM"));

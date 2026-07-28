@@ -9,10 +9,17 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./queue": {
+      "types": "./dist/queue.d.ts",
+      "import": "./dist/queue.js"
     }
   },
   "scripts": {
     "build": "tsc --build",
     "clean": "tsc --build --clean"
+  },
+  "dependencies": {
+    "bullmq": "^5.81.2"
   }
 }

@@ -1,19 +1,24 @@
-/**
- * @stu/worker — BullMQ Worker 入口
- *
- * Day 1: 占位进程，验证 workspace 结构。
- * Day 5: 引入 BullMQ 消费 task-execution 队列。
- */
+import { closePool } from "@stu/db";
+import { TASK_EXECUTION_QUEUE } from "@stu/shared";
 
-import { APP_NAME } from "@stu/shared";
+import { reconcileRecoverableTasks } from "./recovery.js";
+import { createTaskWorker } from "./worker.js";
 
-console.log(`[worker] ${APP_NAME} worker placeholder — 等待 Day 5 接入 BullMQ`);
+const taskWorker = createTaskWorker();
+const recovery = await reconcileRecoverableTasks();
+console.log(`[worker] listening queue=${TASK_EXECUTION_QUEUE} recovery=${JSON.stringify(recovery)}`);
 
-// 演示进程优雅退出：Day 6 会把这里升级为 graceful shutdown（等 in-flight job 完成）。
-const shutdown = (signal: string): void => {
-  console.log(`[worker] received ${signal}, exiting gracefully...`);
+let isShuttingDown = false;
+async function shutdown(signal: string): Promise<void> {
+  if (isShuttingDown) {
+    return;
+  }
+  isShuttingDown = true;
+  console.log(`[worker] received ${signal}; stopping intake and waiting for active jobs...`);
+  await taskWorker.close();
+  await closePool();
   process.exit(0);
-};
+}
 
-process.on("SIGINT", () => shutdown("SIGINT"));
-process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => void shutdown("SIGINT"));
+process.on("SIGTERM", () => void shutdown("SIGTERM"));

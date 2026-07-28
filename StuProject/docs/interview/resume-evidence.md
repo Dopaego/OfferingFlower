@@ -27,17 +27,19 @@
 | 5 | 通过 `pg_isready` / `redis-cli ping` 健康检查和容器内客户端验证本地依赖，区分“容器运行”与“服务就绪” | [docker-compose.yml](../../docker-compose.yml) | `docker compose exec -T postgres psql -U agent -d issue_agent -c 'SELECT current_database(), current_user;'`；`docker compose exec -T redis redis-cli ping` | Day 2 ✅ |
 | 6 | 使用 `node-pg-migrate` 管理 PostgreSQL schema，基于原生 SQL 构建 Issue、Task、执行步骤与 Artifact 四类可审计数据模型，并为高频查询建立索引 | [初始 migration](../../packages/db/migrations/1710720000000_initial-schema.js) | `npm run db:migrate`；容器内查询 `pg_tables` / `pg_indexes` | Day 3 ✅ |
 | 7 | 封装进程级 PostgreSQL 连接池、参数化查询和自动回滚事务；真实集成测试验证单引号输入安全往返及事务异常后无残留数据 | [数据库封装](../../packages/db/src/index.ts), [集成测试](../../packages/db/test/database.integration.test.ts) | `npm run test --workspace @stu/db` | Day 3 ✅ |
+| 8 | 基于 Express + Zod 构建 Issue/Task API，提供统一错误契约、`traceId` 关联和 PostgreSQL 审计步骤；集成测试验证运行时边界校验 | [API 应用](../../apps/api/src/app.ts), [API 测试](../../apps/api/test/api.integration.test.ts) | `npm run test --workspace @stu/api` | Day 4 ✅ |
+| 9 | 使用数据库幂等键与 BullMQ `jobId = taskId` 防止重复创建和重复投递；API-Worker 异步链路将任务状态与步骤持久化到 PostgreSQL | [仓储层](../../packages/db/src/repository.ts), [队列配置](../../packages/shared/src/queue.ts), [Worker](../../apps/worker/src/worker.ts) | `npm run test --workspace @stu/api`；`npm run test --workspace @stu/worker` | Day 4-5 ✅ |
+| 10 | 实现 Worker 有界重试、SIGTERM 优雅退出及基于 PostgreSQL 非终态任务的队列恢复；真实集成测试验证三次失败后落库与缺失 job 重入队 | [恢复协调器](../../apps/worker/src/recovery.ts), [恢复测试](../../apps/worker/test/recovery.integration.test.ts), [实验记录](../labs/week1-recovery.md) | `npm run test --workspace @stu/worker` | Day 6 ✅ |
 
-## 已"设计但尚未实现"的表述
+## 当前尚未实现的边界
 
-（下周关卡完成后从这一段升级到上面表格。）
-
-- Express + Zod + Pino 实现带 `traceId` 的统一 API 边界与错误契约 → Day 4
-- BullMQ 实现幂等 `jobId` 与指数退避的异步任务队列 → Day 5
-- Redis 丢失后从 PostgreSQL checkpoint 重建 Blackboard 的恢复路径 → Day 6
+- LLM Tool Calling、真实模型调用费用控制与工具选择 → Week 2
+- Playwright 浏览器复现、截图证据和候选补丁 → Week 3
+- React 操作台、人工批准流程与完整评测报告 → Week 3-4
 
 ## 更新记录
 
 - 2026-07-15：Week 1 Day 1 完成，新增 3 条 ✅ 表述。
 - 2026-07-18：Week 1 Day 2 完成，新增 Docker Compose、健康检查与基础设施连通性证据。
 - 2026-07-18：Week 1 Day 3 完成，新增 PostgreSQL migration、连接池、参数化查询与事务回滚证据。
+- 2026-07-26：Week 1 Day 4-6 完成，新增 API 边界、异步队列、恢复和故障实验的可验证证据。

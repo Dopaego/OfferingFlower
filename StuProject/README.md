@@ -39,27 +39,41 @@ StuProject/
     └── labs/              # 故障复现实验记录
 ```
 
-## 快速开始（Day 2 版）
+## 快速开始（Week 1 完整版）
 
 ```bash
 cd StuProject
 nvm use            # 使用 Node 22（.nvmrc）
 npm install
-npm run typecheck  # tsc --build，全绿即通过 Day 1 验收
-npm run dev:api    # 应看到 "boot placeholder" 打印
-npm run dev:worker # 应看到 "worker placeholder" 打印，Ctrl+C 会走 graceful shutdown
+npm run typecheck  # tsc --build
 ```
 
 启动本地基础设施：
 
 ```bash
 docker compose up -d --wait
+npm run db:migrate
 docker compose ps
 
 # 预期：两个容器都是 healthy
 docker compose exec -T postgres \
     psql -U agent -d issue_agent -c 'SELECT current_database(), current_user;'
 docker compose exec -T redis redis-cli ping
+```
+
+启动 API 与 Worker：
+
+```bash
+npm run dev:api    # http://127.0.0.1:4000
+npm run dev:worker # 消费 task-execution 队列
+```
+
+验证 Week 1：
+
+```bash
+npm run test --workspace @stu/db
+npm run test --workspace @stu/api
+npm run test --workspace @stu/worker
 ```
 
 日常停止服务但保留数据：

@@ -114,3 +114,5 @@ export async function withTransaction<Result>(
 		client.release();
 	}
 }
+
+export * from "./repository.js";
