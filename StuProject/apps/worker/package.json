@@ -12,6 +12,7 @@
     "test": "tsx --test --test-concurrency=1 test/**/*.test.ts"
   },
   "dependencies": {
+    "@stu/agent": "*",
     "@stu/db": "*",
     "@stu/shared": "*",
     "bullmq": "^5.81.2",

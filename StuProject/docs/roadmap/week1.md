@@ -141,3 +141,13 @@ npm run db:migrate:down
 - [Day 5：Redis、BullMQ 与 Worker](../knowledge/day5-redis-bullmq.md)
 - [Day 6：重试、优雅退出与恢复](../knowledge/day6-failure-recovery.md)
 - [面试题](../interview/qa.md) 第 4-6 组
+
+## Day 7 验收清单 ✅
+
+- [x] 完成 API → 队列 → Worker → PostgreSQL → 恢复协调器的白板叙事。
+- [x] 将已验证能力、当前边界和 Week 2 入口写入复盘，禁止将未实现 LLM/浏览器自动化包装为成果。
+- [x] 汇总可复现验证命令与代码证据。
+
+## Day 7 学习产出
+
+- [Week 1 复盘与白板表达](../knowledge/day7-week1-retrospective.md)

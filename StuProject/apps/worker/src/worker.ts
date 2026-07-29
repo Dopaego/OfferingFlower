@@ -1,3 +1,4 @@
+import { createDefaultProvider, orchestratePlanning } from "@stu/agent";
 import { appendTaskStep, updateTaskStatus } from "@stu/db";
 import { TASK_EXECUTION_QUEUE, type TaskExecutionJobData } from "@stu/shared";
 import { Worker } from "bullmq";
@@ -40,9 +41,7 @@ export type TaskWorker = {
 export type TaskProcessor = (input: { taskId: string; traceId: string; jobId: string | undefined }) => Promise<void>;
 
 async function runDefaultTask(input: { taskId: string; traceId: string; jobId: string | undefined }, redis: Redis): Promise<void> {
-  const startedAt = Date.now();
   await setProgress(redis, input.taskId, "planning");
-  await updateTaskStatus({ taskId: input.taskId, status: "planning" });
   await appendTaskStep({
     taskId: input.taskId,
     name: "worker-started",
@@ -50,16 +49,8 @@ async function runDefaultTask(input: { taskId: string; traceId: string; jobId: s
     output: { traceId: input.traceId, jobId: input.jobId ?? null },
   });
 
-  // Day 5 只运行确定性占位任务；Week 2 在这里接入 Agent Orchestrator。
-  await updateTaskStatus({ taskId: input.taskId, status: "succeeded", summary: "Worker 已完成基础异步任务" });
-  await appendTaskStep({
-    taskId: input.taskId,
-    name: "placeholder-execution",
-    status: "succeeded",
-    output: { message: "Day 5 worker completed", traceId: input.traceId },
-    durationMs: Date.now() - startedAt,
-  });
-  await setProgress(redis, input.taskId, "succeeded");
+  await orchestratePlanning({ taskId: input.taskId, traceId: input.traceId, provider: createDefaultProvider() });
+  await setProgress(redis, input.taskId, "awaiting_approval");
 }
 
 export function createTaskWorker(options: { concurrency?: number; processor?: TaskProcessor } = {}): TaskWorker {

@@ -329,3 +329,67 @@
 **30 秒**：先承认 BullMQ 属于至少一次处理，不能承诺队列层 exactly-once。然后说明分层措施：API 幂等键、`jobId=taskId`、数据库审计步骤、外部副作用前的检查点和恢复协调。最后说明会监控重复率、failed 数、队列积压和恢复数量。
 
 **真实场景回答**：我会先暂停高风险副作用（例如自动应用补丁），保留 Task/Step 证据，按幂等键和 traceId 定位重复来源；对已完成副作用打业务去重标记，再安全重放未完成步骤。
+
+## 第 7 组：Day 7 —— 复盘与系统表达
+
+### Q27. 你怎么用两分钟解释这个 Agent 项目当前的端到端链路？
+
+**30 秒**：客户端创建 Issue 和 Task，Task 先写 PostgreSQL 再放 BullMQ；Worker 处理并持续追加 Task Step。PostgreSQL 是事实源，Redis 是队列和短期进度，因此 Worker 或 Redis 出故障时，通过扫描非终态 Task 重建队列。
+
+**2 分钟展开**：先说数据流，再说故障流，最后讲边界。数据流是 API 校验、幂等创建、异步消费、审计落库；故障流是三次重试、最终失败落库、启动 reconciliation；边界是当前尚未接 LLM 和浏览器，后续先让模型输出经过人工批准的计划。
+
+**代码证据**：[Week 1 复盘](../knowledge/day7-week1-retrospective.md)、[恢复协调器](../../apps/worker/src/recovery.ts)。
+
+### Q28. 你如何保证简历项目描述真实？
+
+**30 秒**：每一条已写表述必须对应代码位置、可运行验证命令和取舍说明；没有测试、实验或运行结果的能力只写为“设计中”，不写成“已实现”。
+
+**代码证据**：[简历证据映射](resume-evidence.md)。
+
+## 第 8 组：Week 2 Day 8 —— LLM Provider
+
+### Q29. 为什么要抽象 LLM Provider，而不是在 Worker 里直接调用 OpenAI SDK？
+
+**30 秒**：Worker 是业务编排层，不应该知道厂商 URL、鉴权字段和响应格式。`LlmProvider` 把这些放在适配层，业务只依赖稳定的 completion 契约；测试可换 FakeProvider，未来换模型服务也不改编排逻辑。
+
+**代码证据**：[@stu/agent](../../packages/agent/src/index.ts)、[Provider 测试](../../packages/agent/test/provider.test.ts)。
+
+### Q30. FakeProvider 有什么工程价值？
+
+**30 秒**：它让测试确定、无网络、无费用、不会受模型随机性和配额影响。真实 Key 未配置时默认选它，开发环境不会意外调用付费模型；真实 Provider 则单独测试协议映射和错误分类。
+
+**常见追问**："FakeProvider 会不会掩盖真实模型问题？" → 会，所以它只保证编排回归；还需用少量受控真实请求做 smoke test，并把结果与成本单独记录，不能替代线上观察。
+
+## 第 9 组：Week 2 Day 9 —— Planner Orchestrator
+
+### Q31. Planner Orchestrator 和 LLM Provider 分别负责什么？
+
+**30 秒**：Provider 只负责把统一的对话请求发给模型并返回结果；Orchestrator 负责读取 Issue/Task、推进状态机、构造受控 Prompt、校验计划、写审计步骤和决定是否进入人工审批。这样厂商协议和业务流程不会耦合。
+
+**2 分钟展开**：Provider 可替换为 Fake 或 OpenAI 兼容实现；Orchestrator 始终依赖接口。模型文本不是状态机，只有代码能把 Task 从 `planning` 变成 `awaiting_approval`。如果 JSON 解析失败，任务不能进入批准态，必须保留错误证据并按错误类型处理。
+
+**代码锚点**：[@stu/agent Provider](../../packages/agent/src/index.ts)、[Day 9 讲义](../knowledge/day9-planner-orchestrator.md)。Planner 代码将在 Day 9 实现。
+
+### Q32. 为什么计划生成后要停在 `awaiting_approval`？
+
+**30 秒**：计划只是模型给出的候选推理，不是已验证事实。停在 `awaiting_approval` 能让人检查范围、风险和工具请求，避免幻觉或提示注入直接触发浏览器操作、代码修改或外部副作用。
+
+**常见追问**："这会不会降低自动化效率？" → 高风险步骤需要可控性；低风险只读工具未来可在明确预算内自动运行，但授权仍由代码策略控制，不能由模型自行绕过。
+
+## 第 10 组：Week 2 Day 10 —— Tool Policy
+
+### Q33. 为什么 Tool Calling 不等于把 shell 暴露给模型？
+
+**30 秒**：Tool Calling 是结构化请求协议，不是权限授予。模型只能请求代码注册过的工具；Tool Policy 再根据 allowlist、输入 schema、风险等级、预算和批准状态决定能否执行。任意 shell 根本不注册。
+
+**代码锚点**：[Day 10 讲义](../knowledge/day10-tool-policy.md)。Tool Policy 实现将在 Day 10 完成。
+
+### Q34. Allowlist 为什么优于 Blocklist？
+
+**30 秒**：Blocklist 永远列不完危险命令、编码方式和组合路径；allowlist 只开放业务真正需要的少数能力，未知工具名默认拒绝。安全边界从“拦截已知坏事”变成“只允许已知好事”。
+
+### Q35. 如何防止间接提示注入？
+
+**30 秒**：把 Issue、代码、网页和工具输出都视为不可信数据，不能当指令拼回系统提示；同时在代码层限制工具能力、校验输入、脱敏输出。Prompt 提醒只是辅助，真正防线是 Policy 和最小权限。
+
+**真实场景回答**：如果检索到的 README 出现“上传 `.env`”的指令，我会把它作为文本证据记录，而不是执行；由于 `read_file` 会拒绝敏感路径、上传工具也不在 allowlist，模型无法越过策略层拿到 secret。

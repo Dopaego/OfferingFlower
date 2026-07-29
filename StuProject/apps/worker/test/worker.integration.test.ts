@@ -8,16 +8,16 @@ import { Redis } from "ioredis";
 
 import { createTaskWorker } from "../src/worker.ts";
 
-async function waitForSucceededTask(taskId: string): Promise<void> {
+async function waitForApprovalTask(taskId: string): Promise<void> {
   const deadline = Date.now() + 10_000;
   while (Date.now() < deadline) {
     const detail = await getTaskDetail(taskId);
-    if (detail?.task.status === "succeeded") {
+    if (detail?.task.status === "awaiting_approval") {
       return;
     }
     await new Promise<void>((resolve) => setTimeout(resolve, 100));
   }
-  throw new Error(`Task 未在时限内完成: ${taskId}`);
+  throw new Error(`Task 未在时限内进入 awaiting_approval: ${taskId}`);
 }
 
 after(async () => {
@@ -25,7 +25,7 @@ after(async () => {
   await closePool();
 });
 
-test("BullMQ Worker 会消费任务，并同步 PostgreSQL 审计与 Redis 短期进度", async () => {
+test("BullMQ Worker 会生成可审计诊断计划并等待人工批准", async () => {
   const externalId = `worker-test-${randomUUID()}`;
   const issue = await createIssue({
     externalId,
@@ -40,15 +40,17 @@ test("BullMQ Worker 会消费任务，并同步 PostgreSQL 审计与 Redis 短�
 
   try {
     await getTaskQueue().add("execute-task", { taskId: task.id, traceId: task.traceId }, { jobId: task.id });
-    await waitForSucceededTask(task.id);
+    await waitForApprovalTask(task.id);
 
     const detail = await getTaskDetail(task.id);
-    assert.equal(detail?.task.status, "succeeded");
-    assert.equal(detail?.steps.length, 3);
-    assert.deepEqual(detail?.steps.map((step) => step.name), ["task-created", "worker-started", "placeholder-execution"]);
+    assert.equal(detail?.task.status, "awaiting_approval");
+    assert.deepEqual(detail?.steps.map((step) => step.name), ["task-created", "worker-started", "planner-started", "planner-generated"]);
+    const plannerOutput = detail?.steps.at(-1)?.output as { model?: string; plan?: { requiresHumanApproval?: boolean } };
+    assert.equal(plannerOutput.model, "fake-planner-v1");
+    assert.equal(plannerOutput.plan?.requiresHumanApproval, true);
 
     const progress = await progressRedis.hgetall(`task:${task.id}:progress`);
-    assert.equal(progress.status, "succeeded");
+    assert.equal(progress.status, "awaiting_approval");
     assert.notEqual(progress.updatedAt, undefined);
   } finally {
     await taskWorker.close();

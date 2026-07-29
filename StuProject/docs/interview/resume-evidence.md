@@ -30,6 +30,8 @@
 | 8 | 基于 Express + Zod 构建 Issue/Task API，提供统一错误契约、`traceId` 关联和 PostgreSQL 审计步骤；集成测试验证运行时边界校验 | [API 应用](../../apps/api/src/app.ts), [API 测试](../../apps/api/test/api.integration.test.ts) | `npm run test --workspace @stu/api` | Day 4 ✅ |
 | 9 | 使用数据库幂等键与 BullMQ `jobId = taskId` 防止重复创建和重复投递；API-Worker 异步链路将任务状态与步骤持久化到 PostgreSQL | [仓储层](../../packages/db/src/repository.ts), [队列配置](../../packages/shared/src/queue.ts), [Worker](../../apps/worker/src/worker.ts) | `npm run test --workspace @stu/api`；`npm run test --workspace @stu/worker` | Day 4-5 ✅ |
 | 10 | 实现 Worker 有界重试、SIGTERM 优雅退出及基于 PostgreSQL 非终态任务的队列恢复；真实集成测试验证三次失败后落库与缺失 job 重入队 | [恢复协调器](../../apps/worker/src/recovery.ts), [恢复测试](../../apps/worker/test/recovery.integration.test.ts), [实验记录](../labs/week1-recovery.md) | `npm run test --workspace @stu/worker` | Day 6 ✅ |
+| 11 | 抽象 LLM Provider 契约，提供无 Key 默认 FakeProvider 与 OpenAI 兼容 HTTP 适配器；覆盖 token 用量映射、429 可重试分类和密钥不回显测试 | [Provider 实现](../../packages/agent/src/index.ts), [Provider 测试](../../packages/agent/test/provider.test.ts) | `npm run test --workspace @stu/agent` | Week 2 Day 8 ✅ |
+| 12 | 定义受限 Tool Policy：代码 allowlist、路径穿越拒绝、只读调用预算、写操作批准门及基础 secret 脱敏；10 项 Agent 单元测试覆盖安全拒绝路径 | [Tool Policy](../../packages/agent/src/tools.ts), [安全测试](../../packages/agent/test/tools.test.ts) | `npm run test --workspace @stu/agent` | Week 2 Day 10 ✅ |
 
 ## 当前尚未实现的边界
 
@@ -43,3 +45,5 @@
 - 2026-07-18：Week 1 Day 2 完成，新增 Docker Compose、健康检查与基础设施连通性证据。
 - 2026-07-18：Week 1 Day 3 完成，新增 PostgreSQL migration、连接池、参数化查询与事务回滚证据。
 - 2026-07-26：Week 1 Day 4-6 完成，新增 API 边界、异步队列、恢复和故障实验的可验证证据。
+- 2026-07-29：Week 1 Day 7 复盘完成；Week 2 Day 8 完成 Provider 抽象与 FakeProvider。
+- 2026-07-29：Week 2 Day 9 完成 Planner/Orchestrator 编码，等待 Docker 依赖恢复后复验 Worker 集成链路；Day 10 Tool Policy 与安全单元测试完成。
