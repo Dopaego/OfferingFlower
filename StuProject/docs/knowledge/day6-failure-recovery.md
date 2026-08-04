@@ -41,7 +41,6 @@ sequenceDiagram
 attempts: 3
 backoff: { type: "exponential", delay: 1_000 }
 ```
-
 处理器连续失败三次后，Worker 将 Task 标成 `failed`，写 `WORKER_EXECUTION_FAILED`，并追加 `worker-failed` 审计步骤。重试次数必须有上限，否则永久错误会无限占用资源。真正的 Agent 后续可把需人工判断的异常转为 `needs_review`，而不是机械重试。
 
 ## Redis 丢失后的恢复
