@@ -29,3 +29,14 @@
   - [ ] NestJS模块化
 - [ ] Agent
   - [ ] RAG.....
+
+
+# Tolearn
+
+- 双Token机制
+- next.js
+- playwright的使用
+- wujie的使用
+- 多Agent通信
+- 缓存机制
+- 多个渲染进程的通信怎么做

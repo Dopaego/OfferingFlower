@@ -42,6 +42,121 @@
 
 只背名词会在第二次追问时暴露；能讲出失败路径、监控指标和取舍，才像做过工程。
 
+### 专业名词速查：先听懂，再深入
+
+后文第一次看到名词时，先回到这张表建立直觉。面试回答不能只复述英文缩写，还要说清它解决的问题、失败方式和工程代价。
+
+| 名词 | 白话解释 | 工程上解决什么问题 |
+|---|---|---|
+| LLM（Large Language Model） | 根据上下文预测后续 Token 的概率模型 | 理解和生成文本、代码、计划，但不天然保证正确 |
+| Token | 模型读写文本时的计量单位，不等于一个字 | 决定上下文容量、延迟和费用 |
+| Context Window | 一次模型调用最多能看到的 Token 范围 | 限制历史、工具和知识能放多少 |
+| Prompt | 发送给模型的指令、数据和输出约束 | 定义本次任务接口，而不是保存秘密 |
+| JSON Schema | 用 JSON 描述字段类型、必填项、枚举和嵌套结构 | 让模型和服务端共享结构契约 |
+| Zod / Ajv | TypeScript 常用运行时 Schema 库 / JSON Schema 校验器 | 检查真实外部输入，而不只依赖编译期类型 |
+| Structured Output | 要求模型按 JSON Schema 等结构输出 | 降低解析失败；仍需运行时和业务校验 |
+| Agent | 模型能依据环境反馈动态选择下一步的系统 | 处理步骤难以预先完全写死的任务 |
+| Workflow | 路径主要由程序预定义的流程 | 提供确定性、低成本、易审计的业务执行 |
+| ReAct | Reason + Act：思考下一步、执行动作、读取观察 | 描述基本 Agent 循环；生产中需加预算和终止条件 |
+| Tool / Function Calling | 模型提出结构化工具调用，由应用执行 | 让模型受控地读写外部世界 |
+| State Machine | 有限状态、事件和合法转移组成的执行模型 | 防止 Agent 变成不可控的无限 `while` |
+| Checkpoint | 可持久化、可恢复的任务状态快照 | 让长任务在崩溃或重启后继续 |
+| JSONL | 每一行都是独立 JSON 对象的文本格式 | 适合追加式 Session 和审计事件 |
+| Idempotency（幂等） | 同一操作重复执行，最终效果与一次相同 | 防止重试造成重复 PR、扣款或部署 |
+| Idempotency Key | 标识一次业务操作的稳定唯一键 | 让服务端识别网络重试是不是同一操作 |
+| Context Engineering | 选择、排序、压缩当前要给模型的信息 | 提高相关事实密度，减少冲突和过期信息 |
+| RAG | 先检索外部知识，再让模型基于证据生成 | 处理私有、实时或可引用知识 |
+| Embedding | 把语义映射成向量 | 支持“意思相近”的稠密检索 |
+| BM25 | 基于词频和逆文档频率的稀疏检索算法 | 擅长错误码、ID、专有名词等精确匹配 |
+| Rerank | 对初步召回候选重新精排 | 用额外延迟换更准确的 Top-K |
+| RRF | Reciprocal Rank Fusion，用排名倒数融合多路结果 | 无需先统一 BM25 和向量分数的量纲 |
+| ACL | Access Control List，谁能读哪些资源 | 在检索阶段阻止越权片段进入上下文 |
+| RBAC | Role-Based Access Control，按角色授权 | 集中管理用户能调用哪些工具和数据 |
+| MCP | Model Context Protocol，连接外部工具/资源的协议 | 标准化能力发现与调用，不自动提供安全 |
+| Skill | 按任务加载的知识、步骤和引用材料 | 避免所有操作手册常驻 Prompt |
+| Multi-Agent | 多个有独立上下文或角色的 Agent 协作 | 并行或专业分工，但会增加成本和协调失败 |
+| HITL | Human-in-the-loop，人参与审批或纠偏 | 给高风险、模糊或不可逆动作设置责任边界 |
+| TOCTOU | 检查时与使用时之间状态被替换 | 说明审批必须绑定规范化参数、身份和有效期 |
+| SSRF | 服务端被诱导访问不应访问的地址 | 要求出站协议、域名、IP、端口和重定向控制 |
+| Fail Closed | 安全检查异常时默认拒绝，而非放行 | 避免策略服务故障变成越权通道 |
+| E-stop | 紧急停止开关 | 在失控、泄漏或成本异常时快速中断 Agent |
+| Backpressure（背压） | 下游消费慢时，上游必须减速 | 避免流式事件和队列无限占用内存 |
+| SSE | 基于 HTTP 的服务端单向事件流 | 适合模型文本和状态持续下发 |
+| WebSocket | 浏览器和服务端的全双工长连接 | 适合取消、中途注入和二进制双向通信 |
+| AbortSignal | JavaScript 的协作式取消信号 | 把用户取消/超时传到模型、网络和工具最底层 |
+| AsyncIterable | 可以逐项异步产生数据的接口 | 统一模型流、Agent 事件流和网络适配 |
+| Trace / Span | Trace 表示一次完整请求；Span 表示其中一个步骤 | 定位模型、检索、工具和审批的耗时与错误 |
+| Eval / Grader | Eval 是评测任务集；Grader 是判分器 | 用可重复证据判断 Agent 是否真的变好 |
+| P95 | 95% 请求延迟不超过该值 | 比平均延迟更能暴露尾部慢请求 |
+| TTFT | Time To First Token，从请求到首个 Token 的时间 | 衡量用户感知到的首次响应速度 |
+| SLO | Service Level Objective，服务质量目标 | 约束可用性、延迟或成功率的目标范围 |
+| Circuit Breaker（熔断） | 下游持续失败时暂时停止请求 | 防止故障扩散并给依赖恢复时间 |
+| Groundedness / Faithfulness | 回答是否有证据支撑 / 是否忠于给定证据 | 评估 RAG 是否“引用了但仍乱说” |
+| Top-K / Recall@K | 取前 K 个结果 / 正确结果是否出现在前 K 个 | 评估检索候选覆盖率 |
+| Sandbox | 隔离文件、进程、网络和凭据的执行环境 | 限制代码 Agent 的影响范围 |
+| Pipeline / CI | 自动执行构建、检查和测试的流水线 | 把“代码看起来对”变成可验证证据 |
+| Artifact | 构建产生的可部署包、镜像或静态资源 | 确认 Stage/生产环境运行的是哪次代码 |
+| Monorepo | 多个应用和包放在同一大型仓库 | 统一依赖和工具，但增加定位与构建复杂度 |
+| Feature Flag | 无需重新发布即可控制功能开关的配置 | 支持实验、灰度和快速回滚 |
+| PR（Pull Request） | 请求团队审阅并合并代码变更 | 承载 Diff、讨论、测试和审批证据 |
+| Review-ready | 已具备有效代码审阅所需的 Diff 与验证信息 | 不代表已经获得所有合并/发布授权 |
+| Codemap | 文件、符号、调用、依赖、测试、配置等关系图 | 在大型仓库中从需求定位到关联代码 |
+| AKS | Azure Kubernetes Service，Azure 托管的 Kubernetes | 调度和隔离云端任务容器 |
+| DevBrain | DE 官方描述的知识层，组合领域知识、实践和 Codemap | 在编码前为任务补充仓库专有上下文 |
+| VP Test | DE 工作流中的项目专用验证测试，录屏展示了 manifest/baseline 流程 | 检查变更是否符合预期；具体全称和规则应以项目文档为准 |
+| Baseline | 测试用来对比的已批准期望结果 | 更新错误会把真实回归误标成通过 |
+| Stage Link | 指向本次构建产物测试环境的链接 | 让产品、设计、QA 和 Reviewer 做人工验收 |
+
+### TypeScript 代码阅读约定
+
+本手册示例遵守以下约定：
+
+- 默认开启 `strict` 与 `noUncheckedIndexedAccess`；
+- 模型、HTTP、数据库 JSON、MCP 等外部输入一律先视为 `unknown`；
+- 使用可辨识联合表达状态和事件，用 `never` 做穷尽检查；
+- 所有长耗时操作都接收 `AbortSignal`；
+- 示例优先展示核心不变量，省略真实项目中的鉴权、日志、持久化和供应商 SDK 适配时会明确说明；
+- `Zod` 示例需要安装 `zod`，其余示例尽量只依赖 Node.js 标准库。
+
+常见 TypeScript/Node.js 术语也统一如下：
+
+| 名词 | 解释 | 在 Agent 代码中的用途 |
+|---|---|---|
+| `unknown` | “类型暂时未知，使用前必须收窄” | 承接模型、HTTP、MCP 和数据库 JSON |
+| `any` | 关闭此值的多数类型检查 | 边界代码中尽量避免，否则错误会向下游扩散 |
+| 可辨识联合 | 每个联合成员都有 `type` 等共同字面量字段 | 表达 Agent State、Event、Result 并安全分支 |
+| `never` | 理论上不可能出现的值 | 在 `switch` 中检查是否漏处理新事件 |
+| Type Guard | 返回 `value is T` 的运行时判断函数 | 从联合类型或 `unknown` 收窄到可用类型 |
+| Generic（泛型） | 用类型参数复用一套类型安全逻辑 | 实现 `Tool<TArgs, TResult>`、队列和缓存 |
+| Type Erasure | TypeScript 类型编译后不会留在 JavaScript 中 | 解释为什么外部数据必须再经 Zod/Ajv |
+| Event Loop | Node.js 调度 I/O 回调和异步任务的循环 | 适合模型/网络 I/O，但会被同步 CPU 任务阻塞 |
+| Microtask | Promise 回调等高优先级异步队列 | 连续大量微任务也可能让定时器和 I/O 饥饿 |
+| `worker_threads` | Node.js 的多线程 CPU 工作单元 | 隔离 Tokenizer、解析和计算密集任务 |
+| ESM / CJS | JavaScript 的两套模块系统 | 配置错误会导致 SDK 在开发可用、生产导入失败 |
+| BFF | Backend for Frontend，面向前端的服务端层 | 保存密钥、做鉴权、聚合 Agent 事件并保护浏览器 |
+
+### TypeScript 代码实验索引
+
+建议不要只复制代码：先隐藏实现，根据“输入—输出—失败条件”自己写一遍，再对照本手册。
+
+| 章节 | 代码实验 | 你应能解释的核心点 |
+|---|---|---|
+| 3.6 | 供应商无关的模型事件流 | 为什么 Runtime 不直接依赖某家 SDK |
+| 4.6 | `unknown → Zod → 业务校验` | 为什么 `as` 不是安全边界 |
+| 5.7 | 可辨识联合 Agent 状态机 | 状态、事件、终止条件如何建模 |
+| 6.5 | Tool Registry 与三阶段执行 | 模型提议和应用执行为什么必须分离 |
+| 7.6 | Token 预算内选择 Context | required、priority、trust、工具原子性 |
+| 8.4 | Session Event Reducer 与 Memory Fact | Session、Snapshot、Memory 的边界 |
+| 9.6 | ACL 前置的 BM25/向量 RRF | 检索质量与权限如何同时保证 |
+| 10.6 | MCP 不可信结果适配 | Schema 合法为什么仍不等于可信 |
+| 11.4 | 子 Agent 任务契约 | 隔离、预算、取消和结构化失败 |
+| 12.2/12.7 | 有限并发与分类重试 | Promise 不负责限流、取消和幂等 |
+| 13.6 | 参数摘要审批 | 如何防 TOCTOU 和旧授权复用 |
+| 14.6 | 可重放流式 Reducer | 去重、顺序、缺口恢复和终态 |
+| 15.7 | 轨迹 Grader | 为什么最终答案正确仍可能不合格 |
+| 16.1 | 循环检测器 | nudge、hard stop 和 no-progress |
+| 29.7 | Codemap 图遍历与交付反馈环 | 知识定位、验证失败和人工接管 |
+
 ---
 
 ## 1. 前端 TypeScript 开发者的岗位画像与能力地图
@@ -230,6 +345,52 @@ LLM 更像一个根据已有文字继续写下去的概率引擎，而不是数�
 - 把全部工具 Schema 永久塞进 Prompt，造成 Token 和选择噪声；
 - 在日志中打印 API Key、完整用户文档或未经脱敏的 Prompt。
 
+### 3.6 TypeScript 示例：用事件流抽象不同模型
+
+这里先解释三个名词：**Provider** 是对某个模型供应商 SDK 的适配层；**Stream** 是模型未完成时持续返回增量事件；**Usage** 是输入、输出和缓存 Token 的计量。业务层依赖自己的事件协议，而不是直接依赖某家 SDK，切换模型时改 Adapter 即可。
+
+~~~ts
+type ChatMessage = Readonly<{
+  role: "system" | "user" | "assistant" | "tool";
+  content: string;
+}>;
+
+type ModelEvent =
+  | { type: "text_delta"; text: string }
+  | { type: "tool_call"; callId: string; name: string; arguments: unknown }
+  | { type: "usage"; inputTokens: number; outputTokens: number; cachedTokens: number }
+  | { type: "completed"; stopReason: "stop" | "tool_call" | "length" };
+
+interface ModelRequest {
+  model: string;
+  messages: readonly ChatMessage[];
+  maxOutputTokens: number;
+}
+
+interface ModelProvider {
+  stream(request: ModelRequest, signal: AbortSignal): AsyncIterable<ModelEvent>;
+}
+
+async function runModel(
+  provider: ModelProvider,
+  request: ModelRequest,
+  signal: AbortSignal,
+): Promise<{ text: string; toolCalls: Extract<ModelEvent, { type: "tool_call" }>[] }> {
+  let text = "";
+  const toolCalls: Extract<ModelEvent, { type: "tool_call" }>[] = [];
+
+  for await (const event of provider.stream(request, signal)) {
+    signal.throwIfAborted();
+    if (event.type === "text_delta") text += event.text;
+    if (event.type === "tool_call") toolCalls.push(event);
+  }
+
+  return { text, toolCalls };
+}
+~~~
+
+生产版还要统一错误分类、首 Token/总超时、重试、Trace、成本和流中断语义。不要在已经向用户展示半段回答后，偷偷换模型并拼接另一段输出。
+
 ### 本章自测
 
 1. 为什么更大的上下文窗口不能替代 RAG 和压缩？
@@ -281,6 +442,49 @@ System/Developer 指令定义长期规则，User 提供当前目标，工具结�
 4. 在执行动作前做权限和语义检查。
 
 “as ToolArgs”不会产生任何运行时保护。面试中能主动指出这一点，是 TypeScript Agent 工程的重要加分项。
+
+### 4.6 TypeScript 示例：结构合法之后再做业务校验
+
+**静态类型**只在编译期帮助开发者；**运行时校验**检查进程真正收到的数据；**业务校验**检查“格式正确但不允许执行”的情况。下面的 `unknown → Zod → 业务规则` 是模型输出进入业务代码的标准边界。
+
+~~~ts
+import { z } from "zod";
+
+const ChangePlanSchema = z.object({
+  summary: z.string().min(1).max(200),
+  files: z.array(z.string().min(1)).min(1).max(20),
+  risk: z.enum(["low", "medium", "high"]),
+  requiresApproval: z.boolean(),
+}).strict();
+
+type ChangePlan = z.infer<typeof ChangePlanSchema>;
+
+function parseChangePlan(value: unknown, allowedRoot: string): ChangePlan {
+  const plan = ChangePlanSchema.parse(value); // 第一层：结构和基本范围
+
+  // 第二层：业务语义。真实项目还应使用 realpath 防符号链接逃逸。
+  const invalid = plan.files.find(
+    (file: string) => !file.startsWith(`${allowedRoot}/`) || file.includes(".."),
+  );
+  if (invalid) throw new Error(`file is outside allowed scope: ${invalid}`);
+
+  if (plan.risk === "high" && !plan.requiresApproval) {
+    throw new Error("high-risk change must require approval");
+  }
+  return plan;
+}
+
+const rawModelOutput: unknown = {
+  summary: "Update the chat toolbar",
+  files: ["web/src/components/ChatToolbar.tsx"],
+  risk: "low",
+  requiresApproval: false,
+};
+
+const safePlan = parseChangePlan(rawModelOutput, "web/src");
+~~~
+
+错误示范是 `const plan = rawModelOutput as ChangePlan`：它只让编译器闭嘴，不会删除多余字段、阻止路径穿越或验证枚举值。
 
 ---
 
@@ -552,6 +756,58 @@ WorkPilot 使用常规阈值和紧急阈值的分级压缩思路（约 80%/95%�
 
 > 上下文工程的核心是相关性和一致性，不是窗口大小。我把稳定规则、当前任务、结构化状态、检索证据和必要工具放入预算，保护 tool call/result 原子性；在常规阈值做摘要或检索化，在紧急阈值保底。摘要还要保存来源和不确定性，并用 Eval 检查目标保持和事实漂移。
 
+### 7.6 TypeScript 示例：在预算内选择上下文
+
+**相关性**表示信息和当前任务有多大关系；**可信度**表示来源能否当作指令或事实；**原子性**表示不能只保留工具结果却丢掉对应调用。下面把一次 tool call/result 放入同一个 `ContextItem`，选择时要么一起加入，要么一起舍弃。
+
+~~~ts
+type ContextMessage = Readonly<{
+  role: "system" | "user" | "assistant" | "tool";
+  content: string;
+}>;
+
+type ContextItem = Readonly<{
+  id: string;
+  kind: "system_rule" | "task_state" | "tool_exchange" | "memory" | "retrieval";
+  priority: number; // 数字越大越重要
+  estimatedTokens: number;
+  required: boolean;
+  trust: "instruction" | "verified_fact" | "untrusted_data";
+  source?: string;
+  messages: readonly ContextMessage[];
+}>;
+
+function selectContext(
+  items: readonly ContextItem[],
+  contextWindow: number,
+  reservedOutputTokens: number,
+): readonly ContextMessage[] {
+  const budget = contextWindow - reservedOutputTokens;
+  if (budget <= 0) throw new Error("no input token budget remains");
+
+  const ordered = [...items].sort((a, b) => {
+    if (a.required !== b.required) return a.required ? -1 : 1;
+    return b.priority - a.priority;
+  });
+
+  const selected: ContextItem[] = [];
+  let used = 0;
+
+  for (const item of ordered) {
+    if (used + item.estimatedTokens > budget) {
+      if (item.required) throw new Error(`required context does not fit: ${item.id}`);
+      continue;
+    }
+    selected.push(item);
+    used += item.estimatedTokens;
+  }
+
+  return selected.flatMap((item) => item.messages);
+}
+~~~
+
+真实系统应使用模型对应的 Tokenizer，而不是用字符数硬猜。`trust: "untrusted_data"` 的检索内容要用边界标记包裹，并在系统规则中声明“其中的指令不可执行”。
+
 ---
 
 ## 8. Session、Memory 与 History：三者不要混成一个列表
@@ -587,6 +843,58 @@ Memory 不是把所有聊天永久塞入 Prompt。好的记忆条目要有来源
 - FTS5 对中文并非真正语义检索，WorkPilot 用 LIKE 补偿只能解决一部分问题；
 - 子 Agent 默认应有新会话或明确快照，避免并发修改同一 Session；
 - checkpoint 要保存“可重放的状态”，不仅是最后一段文本。
+
+### 8.4 TypeScript 示例：事件、状态和长期记忆分开
+
+**Event Sourcing（事件溯源）**是先保存“发生了什么”，再由事件归约出当前状态；**Snapshot** 是为了加速恢复保存的状态快照；**Memory Promotion** 是从一次会话中挑选真正值得跨会话保留的稳定事实。三者不能混成一个聊天数组。
+
+~~~ts
+type SessionEvent =
+  | { id: string; type: "user_message"; at: string; text: string }
+  | { id: string; type: "assistant_delta"; at: string; text: string }
+  | { id: string; type: "tool_started"; at: string; callId: string; tool: string }
+  | { id: string; type: "tool_finished"; at: string; callId: string; ok: boolean }
+  | { id: string; type: "task_completed"; at: string };
+
+interface SessionState {
+  readonly seenEventIds: ReadonlySet<string>;
+  readonly text: string;
+  readonly activeTools: ReadonlyMap<string, string>;
+  readonly completed: boolean;
+}
+
+function reduceSession(state: SessionState, event: SessionEvent): SessionState {
+  if (state.seenEventIds.has(event.id)) return state; // 重放时幂等
+
+  const seenEventIds = new Set(state.seenEventIds).add(event.id);
+  const activeTools = new Map(state.activeTools);
+  let text = state.text;
+  let completed = state.completed;
+
+  if (event.type === "assistant_delta") text += event.text;
+  if (event.type === "tool_started") activeTools.set(event.callId, event.tool);
+  if (event.type === "tool_finished") activeTools.delete(event.callId);
+  if (event.type === "task_completed") completed = true;
+
+  return { seenEventIds, text, activeTools, completed };
+}
+
+interface MemoryFact {
+  key: string;
+  value: string;
+  scope: "user" | "project";
+  sourceEventId: string;
+  confidence: number;
+  observedAt: string;
+  expiresAt?: string;
+}
+
+function canPromoteToMemory(fact: MemoryFact): boolean {
+  return fact.confidence >= 0.9 && fact.value.length <= 500 && fact.sourceEventId.length > 0;
+}
+~~~
+
+`canPromoteToMemory` 只演示最低门槛，不代表可以自动写入任何用户事实。生产版还需敏感信息分类、用户同意、冲突合并、删除入口和过期清理；多实例写 JSONL 还要单写者或外部事务存储。
 
 ### 本章自测
 
@@ -653,6 +961,74 @@ flowchart LR
 
 > 我把 RAG 分为摄取、索引、查询、召回、过滤、重排、生成和评测。生产上常用 BM25 + 向量的混合召回，在重排前做租户和 ACL 过滤，输出附引用并允许证据不足。评测必须拆成 Recall@K 等检索指标和 faithfulness 等生成指标，否则不知道该调 chunk、embedding、reranker 还是 Prompt。
 
+### 9.6 TypeScript 示例：ACL 前置的混合检索与 RRF
+
+**稀疏检索**通常指 BM25 等关键词方法；**稠密检索**通常指 Embedding 向量相似度；**RRF**只使用候选排名，用 `1 / (k + rank)` 融合，因此不用比较两种不可直接同量纲的原始分数。安全不变量是：Retriever 查询本身就带 ACL，应用层再做一次防御性校验。
+
+~~~ts
+interface PrincipalContext {
+  tenantId: string;
+  principalIds: readonly string[];
+}
+
+interface SearchHit {
+  chunkId: string;
+  documentId: string;
+  text: string;
+  tenantId: string;
+  allowedPrincipalIds: readonly string[];
+}
+
+interface Retriever {
+  // 实现必须把 tenant/principal 作为数据库查询条件，而不是召回后才过滤。
+  search(query: string, auth: PrincipalContext, limit: number): Promise<SearchHit[]>;
+}
+
+function isAuthorized(hit: SearchHit, auth: PrincipalContext): boolean {
+  return (
+    hit.tenantId === auth.tenantId &&
+    hit.allowedPrincipalIds.some((id) => auth.principalIds.includes(id))
+  );
+}
+
+function rrf(lists: readonly (readonly SearchHit[])[], k = 60): SearchHit[] {
+  const byId = new Map<string, { hit: SearchHit; score: number }>();
+
+  for (const list of lists) {
+    list.forEach((hit, index) => {
+      const previous = byId.get(hit.chunkId);
+      const score = (previous?.score ?? 0) + 1 / (k + index + 1);
+      byId.set(hit.chunkId, { hit, score });
+    });
+  }
+
+  return [...byId.values()]
+    .sort((a, b) => b.score - a.score)
+    .map(({ hit }) => hit);
+}
+
+async function hybridRetrieve(
+  query: string,
+  auth: PrincipalContext,
+  keyword: Retriever,
+  vector: Retriever,
+): Promise<SearchHit[]> {
+  const [keywordHits, vectorHits] = await Promise.all([
+    keyword.search(query, auth, 30),
+    vector.search(query, auth, 30),
+  ]);
+
+  const allHits = [...keywordHits, ...vectorHits];
+  if (allHits.some((hit) => !isAuthorized(hit, auth))) {
+    throw new Error("retriever returned an unauthorized chunk"); // fail closed
+  }
+
+  return rrf([keywordHits, vectorHits]).slice(0, 10); // 再交给 reranker
+}
+~~~
+
+真实项目还要把索引版本、文档状态和权限摘要放入缓存 Key。若先取出越权文本再在这里 `filter`，越权内容可能已经进入数据库日志、进程内存或 Trace，安全边界已经失守。
+
 ---
 
 ## 10. MCP、Skill 与插件：协议、知识包、产品扩展不是一回事
@@ -695,6 +1071,52 @@ Skill 更像带元数据的可复用操作手册：通过描述匹配任务，�
 
 > Function Calling 是模型和本应用工具交互的调用形态，MCP 进一步标准化了外部能力的发现、协商和调用。MCP 并不等于安全边界，远端 Server 和返回值默认不可信。WorkPilot 用 Manager 管生命周期、Adapter 适配为本地工具，并让 MCP 工具继续经过风险与审批链。Skill 则是按任务加载的指令包，不负责远程协议。
 
+### 10.6 TypeScript 示例：把 MCP 结果当作不可信输入
+
+**Capability Negotiation** 是连接初始化时双方声明支持哪些能力；**Token Passthrough** 是把调用方凭据不加约束地转发给下游，容易造成权限混淆；**Confused Deputy** 是高权限中间服务被诱导替低权限调用方执行越权动作。下面的 Adapter 只传业务参数，不接收模型提供的凭据，并对结果做 Schema 和大小限制。
+
+~~~ts
+import { z } from "zod";
+
+const SearchArgsSchema = z.object({
+  query: z.string().min(1).max(500),
+  limit: z.number().int().min(1).max(20).default(5),
+}).strict();
+
+const McpSearchResultSchema = z.object({
+  items: z.array(z.object({
+    title: z.string().max(200),
+    uri: z.string().url(),
+    snippet: z.string().max(2_000),
+  }).strict()).max(20),
+}).strict();
+
+interface McpClient {
+  callTool(name: string, args: Record<string, unknown>, signal: AbortSignal): Promise<unknown>;
+}
+
+async function callSearchMcp(
+  client: McpClient,
+  rawArgs: unknown,
+  signal: AbortSignal,
+): Promise<z.infer<typeof McpSearchResultSchema>> {
+  const args = SearchArgsSchema.parse(rawArgs);
+
+  // OAuth/服务凭据由受控 Client 持有，不允许模型通过参数传入或覆盖。
+  const rawResult = await client.callTool("search", args, signal);
+  const result = McpSearchResultSchema.parse(rawResult);
+
+  const totalChars = result.items.reduce(
+    (sum: number, item: { snippet: string }) => sum + item.snippet.length,
+    0,
+  );
+  if (totalChars > 20_000) throw new Error("MCP result exceeds context budget");
+  return result;
+}
+~~~
+
+Schema 合法也不表示内容可信：`snippet` 仍可能包含 Prompt Injection，只能作为带来源的数据进入 Context，不能升级成系统指令。远端工具调用前仍需本地 RBAC、风险评分和审批。
+
 ---
 
 ## 11. Multi-Agent：先证明单 Agent 不够
@@ -725,6 +1147,58 @@ Skill 更像带元数据的可复用操作手册：通过描述匹配任务，�
 - 没有清晰验收标准，多个 Agent 只会放大不确定性；
 - 数据/权限无法隔离；
 - 还没有单 Agent 的 Eval 基线。
+
+### 11.4 TypeScript 示例：用任务契约约束子 Agent
+
+**Orchestrator** 是负责任务拆分和汇总的主控；**Worker** 是执行有边界子任务的 Agent；**Handoff** 是把任务所有权移交，而不是简单并行调用。契约要包含输入、预算、截止时间、输出证据和隔离工作区。
+
+~~~ts
+interface AgentTask<TInput> {
+  id: string;
+  objective: string;
+  input: TInput;
+  workspaceId: string;
+  maxSteps: number;
+  timeoutMs: number;
+}
+
+type AgentResult<TOutput> =
+  | { ok: true; taskId: string; output: TOutput; evidence: readonly string[] }
+  | { ok: false; taskId: string; errorCode: string; retryable: boolean };
+
+interface WorkerAgent<TInput, TOutput> {
+  run(task: AgentTask<TInput>, signal: AbortSignal): Promise<AgentResult<TOutput>>;
+}
+
+async function runIndependentWorkers<TInput, TOutput>(
+  worker: WorkerAgent<TInput, TOutput>,
+  tasks: readonly AgentTask<TInput>[],
+  parentSignal: AbortSignal,
+): Promise<AgentResult<TOutput>[]> {
+  const settled = await Promise.allSettled(
+    tasks.map((task) => {
+      const signal = AbortSignal.any([
+        parentSignal,
+        AbortSignal.timeout(task.timeoutMs),
+      ]);
+      return worker.run(task, signal);
+    }),
+  );
+
+  return settled.map((item, index) =>
+    item.status === "fulfilled"
+      ? item.value
+      : {
+          ok: false,
+          taskId: tasks[index]!.id,
+          errorCode: "WORKER_CRASHED",
+          retryable: false,
+        },
+  );
+}
+~~~
+
+这个例子只适用于真正独立的任务。若多个 Worker 会修改同一文件，不要靠 `Promise.allSettled` 碰运气，应使用不同 Worktree/分支，或由单一写入者按证据合并。
 
 ---
 
@@ -818,6 +1292,62 @@ async function mapLimited<T, R>(
 
 > 我先按错误类型和幂等性决定恢复策略，而不是统一重试。429 用带抖动的指数退避，context overflow 走压缩，非幂等工具先查状态或人工确认。并行工具还要声明资源读写集合，用公平调度避免路径冲突。已向用户流式输出后不会静默切模型，否则会产生不可解释的混合答案。
 
+### 12.7 TypeScript 示例：只重试可恢复错误
+
+**Exponential Backoff** 是每次失败后按指数增加等待时间；**Jitter** 是加入随机抖动，防止大量实例同时重试形成惊群；**Retry-After** 是服务端明确告诉客户端多久后再试。重试前还必须判断操作是否幂等。
+
+~~~ts
+class RetryableError extends Error {
+  constructor(
+    message: string,
+    readonly retryAfterMs?: number,
+  ) {
+    super(message);
+  }
+}
+
+async function retry<T>(
+  operation: (signal: AbortSignal) => Promise<T>,
+  options: Readonly<{
+    maxAttempts: number;
+    baseDelayMs: number;
+    signal: AbortSignal;
+  }>,
+): Promise<T> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= options.maxAttempts; attempt += 1) {
+    options.signal.throwIfAborted();
+    try {
+      return await operation(options.signal);
+    } catch (error: unknown) {
+      lastError = error;
+      if (!(error instanceof RetryableError) || attempt === options.maxAttempts) throw error;
+
+      const exponential = options.baseDelayMs * 2 ** (attempt - 1);
+      const jittered = Math.random() * exponential;
+      const delayMs = Math.max(error.retryAfterMs ?? 0, jittered);
+      await new Promise<void>((resolve, reject) => {
+        const onAbort = (): void => {
+          clearTimeout(timer);
+          options.signal.removeEventListener("abort", onAbort);
+          reject(options.signal.reason);
+        };
+        const timer = setTimeout(() => {
+          options.signal.removeEventListener("abort", onAbort);
+          resolve();
+        }, delayMs);
+        options.signal.addEventListener("abort", onAbort, { once: true });
+      });
+    }
+  }
+
+  throw lastError;
+}
+~~~
+
+不要把所有错误包装成 `RetryableError`。参数错误、权限拒绝、上下文超限和确定性测试失败应走修复或人工处理；创建 PR、发消息等非幂等动作只有携带 idempotency key 或能查询执行结果时才可自动重试。
+
 ---
 
 ## 13. 安全与 Human-in-the-loop：给 Agent 装刹车
@@ -879,6 +1409,67 @@ Vite 中以公开前缀注入的变量本质上是构建时公开配置，不是
 - 不用对象深合并直接吸收模型 JSON，避免原型污染和意外配置覆盖；
 - 子进程使用最小环境变量、工作目录和权限，并在 Abort/timeout 时杀掉整个进程树。
 
+### 13.6 TypeScript 示例：审批绑定真实动作，防 TOCTOU
+
+**参数规范化**是把等价输入转换成唯一表达；**Action Digest** 是对工具、规范化参数、用户、会话和有效期计算摘要；**TOCTOU** 风险在这里表现为“用户批准 A，模型执行前把参数换成 B”。因此批准记录必须在执行瞬间重新计算并比对。
+
+~~~ts
+import { createHash, timingSafeEqual } from "node:crypto";
+
+type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
+
+function canonicalJson(value: JsonValue): string {
+  if (value === null || typeof value !== "object") {
+    const encoded = JSON.stringify(value);
+    if (encoded === undefined) throw new Error("value is not valid JSON");
+    return encoded;
+  }
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+
+  return `{${Object.keys(value).sort().map((key) =>
+    `${JSON.stringify(key)}:${canonicalJson(value[key]!)}`
+  ).join(",")}}`;
+}
+
+interface NormalizedAction {
+  tool: string;
+  args: JsonValue;
+  subjectId: string;
+  sessionId: string;
+  expiresAt: string;
+}
+
+interface Approval {
+  digest: string;
+  approvedBy: string;
+  expiresAt: string;
+}
+
+function digestAction(action: NormalizedAction): string {
+  const payload: JsonValue = {
+    tool: action.tool,
+    args: action.args,
+    subjectId: action.subjectId,
+    sessionId: action.sessionId,
+    expiresAt: action.expiresAt,
+  };
+  return createHash("sha256").update(canonicalJson(payload)).digest("hex");
+}
+
+function assertApproved(action: NormalizedAction, approval: Approval, now = new Date()): void {
+  if (now >= new Date(approval.expiresAt)) throw new Error("approval expired");
+  if (approval.expiresAt !== action.expiresAt) throw new Error("approval scope changed");
+
+  const expected = Buffer.from(digestAction(action), "hex");
+  const actual = Buffer.from(approval.digest, "hex");
+  if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
+    throw new Error("action differs from approved parameters");
+  }
+}
+~~~
+
+摘要不是授权本身：批准记录还要由服务端可信身份产生并防篡改。路径应在计算摘要前完成 `realpath`、变量展开和目标解析；批准后参数有任何改变都必须重新审批。
+
 ---
 
 ## 14. 流式、多端和附件：最后一公里也会破坏正确性
@@ -932,6 +1523,79 @@ WorkPilot Web 的 [WebSocketContext.tsx](../web/src/contexts/WebSocketContext.ts
 - 将模型链接直接作为 href、src 或下载目标，产生 XSS/钓鱼/数据外传；
 - 把 API Key 存在 localStorage，并误以为环境变量能隐藏它；
 - UI 显示“已取消”，服务端其实仍在执行和计费。
+
+### 14.6 TypeScript 示例：可重放、可去重的事件 Reducer
+
+**Reducer** 是 `(旧状态, 事件) → 新状态` 的纯状态转移函数；**Sequence** 是同一 Turn 内单调递增的事件序号；**Replay** 是断线后从最后序号重新投递事件。事件 ID 负责去重，序号负责发现中间缺失，两个字段用途不同。
+
+~~~ts
+type AgentPayload =
+  | { type: "text_delta"; text: string }
+  | { type: "tool_started"; callId: string; tool: string }
+  | { type: "tool_finished"; callId: string; ok: boolean }
+  | { type: "approval_required"; approvalId: string }
+  | { type: "failed"; code: string; message: string }
+  | { type: "completed" };
+
+interface AgentEvent {
+  eventId: string;
+  sessionId: string;
+  turnId: string;
+  sequence: number;
+  payload: AgentPayload;
+}
+
+interface ChatState {
+  text: string;
+  phase: "streaming" | "awaiting_approval" | "completed" | "failed";
+  lastSequence: number;
+  appliedEventIds: ReadonlySet<string>;
+  tools: ReadonlyMap<string, { name: string; status: "running" | "passed" | "failed" }>;
+}
+
+function reduceAgentEvent(state: ChatState, event: AgentEvent): ChatState {
+  if (state.appliedEventIds.has(event.eventId)) return state;
+  if (event.sequence !== state.lastSequence + 1) {
+    throw new Error(`event gap: expected ${state.lastSequence + 1}, got ${event.sequence}`);
+  }
+
+  const appliedEventIds = new Set(state.appliedEventIds).add(event.eventId);
+  const tools = new Map(state.tools);
+  let text = state.text;
+  let phase = state.phase;
+
+  switch (event.payload.type) {
+    case "text_delta":
+      text += event.payload.text;
+      break;
+    case "tool_started":
+      tools.set(event.payload.callId, { name: event.payload.tool, status: "running" });
+      break;
+    case "tool_finished": {
+      const previous = tools.get(event.payload.callId);
+      if (!previous) throw new Error(`unknown tool call: ${event.payload.callId}`);
+      tools.set(event.payload.callId, {
+        name: previous.name,
+        status: event.payload.ok ? "passed" : "failed",
+      });
+      break;
+    }
+    case "approval_required":
+      phase = "awaiting_approval";
+      break;
+    case "failed":
+      phase = "failed";
+      break;
+    case "completed":
+      phase = "completed";
+      break;
+  }
+
+  return { text, phase, lastSequence: event.sequence, appliedEventIds, tools };
+}
+~~~
+
+遇到序号缺口时不要继续渲染并假装完整，应向服务端请求从 `lastSequence + 1` 开始补发。React 中还应批量合并 `text_delta`，避免每个 Token 触发一次整树渲染。
 
 ---
 
@@ -988,6 +1652,59 @@ WorkPilot 已有事件、日志、审计和成本跟踪基础，但若做更大�
 - **Playwright**：流式渲染、审批、取消、断线恢复和 XSS；
 - **Eval runner**：将数据集、Prompt 版本、模型版本、grader 和报告固化到 CI。
 
+### 15.7 TypeScript 示例：确定性轨迹 Grader
+
+**Trajectory** 是一次任务中模型调用、工具调用、观察和状态转移的完整轨迹；**Deterministic Grader** 用程序规则判分，可重复且便宜；**LLM-as-judge** 用模型评价开放质量，覆盖面大但存在偏差。能用程序判断的工具顺序、参数和终止条件，应优先使用确定性 Grader。
+
+~~~ts
+type TraceStep =
+  | { type: "model"; model: string }
+  | { type: "tool"; name: string; args: Readonly<Record<string, unknown>>; ok: boolean }
+  | { type: "completed"; stopReason: string };
+
+interface EvalCase {
+  id: string;
+  requiredTools: readonly string[];
+  forbiddenTools: readonly string[];
+  maxToolCalls: number;
+  requireCompletion: boolean;
+}
+
+interface Grade {
+  passed: boolean;
+  score: number;
+  reasons: readonly string[];
+}
+
+function gradeTrajectory(test: EvalCase, steps: readonly TraceStep[]): Grade {
+  const tools = steps.filter((step): step is Extract<TraceStep, { type: "tool" }> =>
+    step.type === "tool"
+  );
+  const reasons: string[] = [];
+
+  for (const required of test.requiredTools) {
+    if (!tools.some((step) => step.name === required && step.ok)) {
+      reasons.push(`missing successful tool: ${required}`);
+    }
+  }
+  for (const forbidden of test.forbiddenTools) {
+    if (tools.some((step) => step.name === forbidden)) {
+      reasons.push(`forbidden tool used: ${forbidden}`);
+    }
+  }
+  if (tools.length > test.maxToolCalls) reasons.push("tool-call budget exceeded");
+  if (test.requireCompletion && !steps.some((step) => step.type === "completed")) {
+    reasons.push("trajectory did not reach a terminal state");
+  }
+
+  const checks = test.requiredTools.length + test.forbiddenTools.length + 2;
+  const score = Math.max(0, 1 - reasons.length / Math.max(checks, 1));
+  return { passed: reasons.length === 0, score, reasons };
+}
+~~~
+
+一个完整 Eval 报告还要固定 Dataset、Prompt、模型、工具版本和环境 Commit，并报告样本量与失败分类。最终答案正确但调用了越权工具，不能算成功。
+
 WorkPilot Web 自身使用 TypeScript 6 strict、Vitest、Testing Library 与 Playwright。可重点阅读 [web/src/lib/api.test.ts](../web/src/lib/api.test.ts)、[web/src/contexts/WebSocketContext.test.tsx](../web/src/contexts/WebSocketContext.test.tsx)和 [web/src/lib/attachments.test.ts](../web/src/lib/attachments.test.ts)，学习 API、连接事件和附件安全的测试方式。
 
 ### 本章自测
@@ -1011,6 +1728,43 @@ WorkPilot Web 自身使用 TypeScript 6 strict、Vitest、Testing Library 与 Pl
 3. 检查结果是否明确包含 success/error 和关键事实；
 4. 用固定输入复现并统计重复签名；
 5. 增加 no-progress 阈值、nudge 和 hard stop。
+
+**No-progress** 表示多轮动作没有带来新事实或状态变化；**Signature** 是规范化后的“工具名 + 参数 + 关键观察”指纹。下面的检测器不是见到重复就立刻停止，而是在滑动窗口内超过阈值才报告循环。
+
+~~~ts
+interface ToolObservation {
+  tool: string;
+  normalizedArgs: string;
+  outcomeCode: string;
+}
+
+class LoopDetector {
+  readonly #recent: string[] = [];
+
+  constructor(
+    private readonly windowSize = 6,
+    private readonly repeatThreshold = 3,
+  ) {}
+
+  record(observation: ToolObservation): "continue" | "nudge" | "hard_stop" {
+    const signature = [
+      observation.tool,
+      observation.normalizedArgs,
+      observation.outcomeCode,
+    ].join("|");
+
+    this.#recent.push(signature);
+    if (this.#recent.length > this.windowSize) this.#recent.shift();
+
+    const repeats = this.#recent.filter((item) => item === signature).length;
+    if (repeats >= this.repeatThreshold + 1) return "hard_stop";
+    if (repeats >= this.repeatThreshold) return "nudge";
+    return "continue";
+  }
+}
+~~~
+
+生产版还要识别“参数不同但语义相同”和“工具成功但任务状态没变化”。收到 `nudge` 后应明确指出已有证据和必须换策略；`hard_stop` 时保存 Checkpoint 并把原因交给用户，而不是只抛通用错误。
 
 ### 16.2 上下文突然超限
 
@@ -2211,6 +2965,168 @@ function isReviewReady(task: DeliveryTask): boolean {
   );
 }
 ```
+
+#### 示例一：用 Codemap 做受限图遍历
+
+**Node（节点）**表示文件、Symbol、测试或配置；**Edge（边）**表示 import、call、test-of 等关系；**Seed（种子）**是全文/Embedding 检索先找到的锚点；**Traversal（遍历）**从种子沿允许的边扩展。限制边类型和深度，是为了防止把整个 Monorepo 都塞进 Context。
+
+```ts
+type CodeNodeKind = "file" | "symbol" | "test" | "config";
+type CodeRelation = "imports" | "calls" | "defined_in" | "tested_by" | "configured_by";
+
+interface CodeNode {
+  id: string;
+  kind: CodeNodeKind;
+  path: string;
+  summary: string;
+}
+
+interface CodeEdge {
+  from: string;
+  to: string;
+  relation: CodeRelation;
+}
+
+class CodeMap {
+  readonly #nodes = new Map<string, CodeNode>();
+  readonly #outgoing = new Map<string, CodeEdge[]>();
+
+  constructor(nodes: readonly CodeNode[], edges: readonly CodeEdge[]) {
+    for (const node of nodes) this.#nodes.set(node.id, node);
+    for (const edge of edges) {
+      const bucket = this.#outgoing.get(edge.from) ?? [];
+      bucket.push(edge);
+      this.#outgoing.set(edge.from, bucket);
+    }
+  }
+
+  expand(
+    seedIds: readonly string[],
+    allowedRelations: ReadonlySet<CodeRelation>,
+    maxDepth: number,
+  ): CodeNode[] {
+    const visited = new Set<string>();
+    const queue = seedIds.map((id) => ({ id, depth: 0 }));
+    const result: CodeNode[] = [];
+
+    for (let cursor = 0; cursor < queue.length; cursor += 1) {
+      const current = queue[cursor]!;
+      if (visited.has(current.id)) continue;
+      visited.add(current.id);
+
+      const node = this.#nodes.get(current.id);
+      if (!node) continue; // 索引可能暂时落后于仓库
+      result.push(node);
+      if (current.depth >= maxDepth) continue;
+
+      for (const edge of this.#outgoing.get(current.id) ?? []) {
+        if (allowedRelations.has(edge.relation)) {
+          queue.push({ id: edge.to, depth: current.depth + 1 });
+        }
+      }
+    }
+    return result;
+  }
+}
+
+const codeMap = new CodeMap(
+  [
+    { id: "symbol:ChatToolbar", kind: "symbol", path: "web/src/ChatToolbar.tsx", summary: "Toolbar component" },
+    { id: "file:ChatToolbar", kind: "file", path: "web/src/ChatToolbar.tsx", summary: "Component source" },
+    { id: "test:ChatToolbar", kind: "test", path: "web/src/ChatToolbar.test.tsx", summary: "Toolbar tests" },
+  ],
+  [
+    { from: "symbol:ChatToolbar", to: "file:ChatToolbar", relation: "defined_in" },
+    { from: "symbol:ChatToolbar", to: "test:ChatToolbar", relation: "tested_by" },
+  ],
+);
+
+const candidates = codeMap.expand(
+  ["symbol:ChatToolbar"],
+  new Set<CodeRelation>(["defined_in", "tested_by", "configured_by"]),
+  2,
+);
+```
+
+这只是内存版教学实现。生产 Codemap 还需用 TypeScript Compiler API/`ts-morph` 建 Symbol 与 import 边，记录 `commitSha`、增量更新、反向边、Code Owner 和权限标签；最终候选仍要 rerank，并说明每个文件为什么相关。
+
+#### 示例二：有界的构建—修复反馈循环
+
+**Error Signature** 是归一化后的错误指纹，用来发现同一失败反复出现；**Retry Budget** 是允许的最大尝试次数/时间/费用；**Escalation** 是无法安全收敛时转人工，而不是继续盲改。
+
+```ts
+interface LoopEvidence {
+  build: "passed" | "failed" | "not_run";
+  testsPassed: boolean;
+  stageUrl?: string;
+}
+
+interface LoopTask {
+  id: string;
+  attempt: number;
+  maxAttempts: number;
+}
+
+type VerificationResult =
+  | { ok: true; evidence: LoopEvidence }
+  | {
+      ok: false;
+      category: "code" | "test" | "infrastructure" | "permission";
+      signature: string;
+      summary: string;
+      retryable: boolean;
+    };
+
+type DeliveryOutcome =
+  | { status: "completed"; evidence: LoopEvidence }
+  | { status: "awaiting_human"; reason: string }
+  | { status: "failed"; reason: string };
+
+interface DeliveryDriver {
+  runAttempt(
+    task: LoopTask,
+    previousFailure: Extract<VerificationResult, { ok: false }> | undefined,
+    signal: AbortSignal,
+  ): Promise<VerificationResult>;
+  saveCheckpoint(task: LoopTask, signal: AbortSignal): Promise<void>;
+}
+
+async function runDeliveryLoop(
+  task: LoopTask,
+  driver: DeliveryDriver,
+  signal: AbortSignal,
+): Promise<DeliveryOutcome> {
+  const seenFailures = new Map<string, number>();
+  let previousFailure: Extract<VerificationResult, { ok: false }> | undefined;
+
+  while (task.attempt < task.maxAttempts) {
+    signal.throwIfAborted();
+    task.attempt += 1;
+
+    const result = await driver.runAttempt(task, previousFailure, signal);
+    await driver.saveCheckpoint(task, signal);
+
+    if (result.ok) return { status: "completed", evidence: result.evidence };
+    if (!result.retryable || result.category === "permission") {
+      return { status: "awaiting_human", reason: result.summary };
+    }
+
+    const repeats = (seenFailures.get(result.signature) ?? 0) + 1;
+    seenFailures.set(result.signature, repeats);
+    if (repeats >= 2) {
+      return {
+        status: "awaiting_human",
+        reason: `same verification failure repeated: ${result.signature}`,
+      };
+    }
+    previousFailure = result;
+  }
+
+  return { status: "failed", reason: "retry budget exhausted" };
+}
+```
+
+`runAttempt` 内部才负责定位、编辑、Review、Build 和 Test；循环本身只负责状态、预算、重复检测和接管策略。这样把不确定的“怎样修”与确定性的“能修几次、何时停止”分离。
 
 建议组件映射：
 
