@@ -1,6 +1,8 @@
-# 项目核心描述
+# 项目整体描述
 
-> 参与开发面向本地研发工作区的桌面端 Multi-Agent Coding Platform，实现在大型前端仓库中的知识增强定位与“需求—修改—构建—测试—PR—Stage”交付闭环。
+>技术栈: TypeScript、Node.js、React、Electron、PostgreSQL/pgvector、Redis、Zod、OpenTelemetry、Vitest、Playwright [R1]
+
+> 参与开发面向本地研发工作区的桌面端 Multi-Agent Coding Platform，实现在大型前端仓库中的知识增强定位与“需求—修改—构建—测试—PR—Stage”交付闭环。[R2]
 
 ## 职责
 
@@ -25,6 +27,20 @@ Snrcode 虽然是约 42 万文件、2,000 万行代码的超大型 Monorepo，�
 
     Agent的Runtime\ 索引 \ 构建测试 还是通过 后端服务执行.
     而PostgreSQL/pgvector、Redis、模型网关和可观测系统则作为共享后端能力。  
+
+### 3. 想做一个桌面级应用除了Electron,还有什么其他的方案,各有什么利弊
+
+虽然Electron上手比较快,但是性能一直是比较大的问题, 而且有了ai之后, 技术栈之间的壁垒会越来越小, 因此如果让我选择同样实现一个桌面级的Agent应用, 我可能还会选择 Tauri, 它的架构不再通过Chromium 到 Node实现对os的操作, 而是通过 WebView 到 Rust Backend. 但它的插件生态不如Electron. 
+除了这两个之外,还有Qt配合cpp,这个性能也很不错, 很多图形处理的软件[智驾场景]都会使用Qt开发, 不过即便有了AI,开发起来还是比较吃力, 而且Agent场景也不会对性能造成过多的压力, 所以综合下来, Qt开发的性价比也不算很高
+不过不管客户端的技术栈是什么, 最核心的还是Agent Runtime + Tool生态.这方面就不会受到Electron还是Tauri的影响了
+
+### 4. 在你的交付闭环中涉及了"需求-定位-修改-构建-测试-PR-Stage"的全流程, 那这其中,是全都用了Agent吗[T3]
+
+并非全部使用Agent, 使用Agent的优势是可以解决步骤未知,需要探索和语义判断的任务,但它也有一定的几率会带来副作用, 也有可能解决问题的效果不够稳定, 同时调用LLM会造成 成本增加和延迟时间的增加. 
+因此我们要有选择性地使用Agent, 比如在我们的交付闭环中, Git状态检查\构建\测试\审批 都是流程固定的阶段, 所以这部分应该交由确定性workflow来实现. 它们的特点都是路径稳定, 规则明确, 每次执行的步骤都具有一致性.
+而需求澄清, 代码定位, 修改策略都适合于Agent.
+
+### 5. Model、Agent、Agent Harness、Framework、Runtime 是什么关系？可靠性应由模型承担，还是由 Harness/Runtime 的状态、工具、验证和恢复机制承担？
 
 
 
