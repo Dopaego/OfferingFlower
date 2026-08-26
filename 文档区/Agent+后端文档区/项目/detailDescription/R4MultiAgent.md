@@ -179,3 +179,12 @@ F：E + 有预算自主浏览
 > 我不会让 Planner、Locator、Executor、Reviewer 和 Verifier 共用同一份超长上下文，而会从 PostgreSQL 的权威任务状态中，按照角色、步骤、Snapshot 和 Token Budget 动态构建 Context。Planner 主要保留原始目标、验收标准、约束和架构摘要；Locator 保留定位语义、Hybrid Retrieval、Codemap 和搜索证据；Executor 保留批准计划、当前版本目标代码、直接依赖、测试和修改范围；Reviewer 独立读取原始需求、基线到候选版本的 Diff、相关代码和测试证据，并在第一轮尽量不受 Executor 自我解释影响；Verifier 只关注最终 Snapshot、验收条件和确定性的 Build/Test/Scope Gate。裁剪掉的信息只是退出当前模型输入，仍保存在 PostgreSQL 或 Artifact Store 中，可以通过工具按需获取。跨角色通过带 Schema、来源、内容 Hash 和版本信息的结构化合同交接结论、证据、假设和未解决问题，这样既能降低 Token 成本、注意力污染和角色偏见，又能避免过度裁剪导致的信息断层。
 
 ### 6. 子 Agent 的 Context 隔离如何减少污染，又会引入哪些信息损失？
+
+子 Agent 只看最小必要 Context 可减少噪声和交叉注入，但会丢失隐含约束，需通过 Task Contract、共享事实表和带来源摘要补偿。
+各Agent存在共享的数据, 但也有负责完成对应任务的context,.
+
+### 7. Coding Agent 的计划、历史事故、仓库事实和 Skill 各属于哪类memory, 该如何管理
+
+- 计划: 本轮中的plan属于workingmemory, 但如果是之前的plan, 有可能会被提炼成workflow而变成Procedural Memory, 上一次任务的计划和执行结果 是EpisodicMemory
+- 历史事故: 原始事故记录应该是EpisodicMemory, 但是提炼后可以转化为 ProceduralMemory 用于规避事故的再次发生, 而事故揭示的稳定规律应该是SemanticMemory
+
